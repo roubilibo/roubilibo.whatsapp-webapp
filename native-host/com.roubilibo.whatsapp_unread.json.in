@@ -1,0 +1,9 @@
+{
+  "name": "com.roubilibo.whatsapp_unread",
+  "description": "Local WhatsApp unread counter",
+  "path": "__HOME__/.local/bin/whatsapp-unread-host",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://nedgbcjkbonofenkoignbaieecdeoddg/"
+  ]
+}

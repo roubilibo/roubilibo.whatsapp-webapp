@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+active_window=$(hyprctl activewindow -j)
+
+if jq -e '.class == "chrome-web.whatsapp.com__-Default" or .initialClass == "chrome-web.whatsapp.com__-Default"' <<<"$active_window" >/dev/null; then
+  active_workspace=$(jq -r '.workspace.name // ""' <<<"$active_window")
+  if [[ "$active_workspace" == "special:whatsapp" ]]; then
+    hyprctl dispatch "hl.dsp.workspace.toggle_special('whatsapp')" >/dev/null
+  else
+    hyprctl dispatch "hl.dsp.window.move({ workspace = 'special:whatsapp', follow = false })" >/dev/null
+  fi
+elif jq -e '(.class == "Waydroid") or (.initialClass == "Waydroid") or (.title == "Waydroid") or (.initialTitle == "Waydroid")' <<<"$active_window" >/dev/null; then
+  waydroid session stop
+else
+  hyprctl dispatch 'hl.dsp.window.close()' >/dev/null
+fi

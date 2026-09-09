@@ -1,0 +1,18 @@
+{
+  "name": "roubilibo-whatsapp-webapp",
+  "version": "0.1.0",
+  "description": "Omarchy WhatsApp Web bar widget, unread bridge, and workspace toggle integration.",
+  "author": {
+    "name": "roubilibo"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Roubilibo WhatsApp Webapp",
+    "shortDescription": "Install and maintain the Omarchy WhatsApp Web integration.",
+    "longDescription": "Installs the WhatsApp bar widget, local unread native-messaging bridge, and Hyprland workspace toggle scripts.",
+    "developerName": "roubilibo",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Install or repair the local Omarchy WhatsApp Web integration from this repository."
+  }
+}

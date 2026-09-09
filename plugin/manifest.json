@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "roubilibo.whatsapp-webapp",
+  "name": "WhatsApp Web",
+  "version": "0.2.0",
+  "author": "roubilibo",
+  "license": "MIT",
+  "description": "Show WhatsApp Web unread count and toggle its window.",
+  "kinds": ["bar-widget"],
+  "entryPoints": {"barWidget": "Widget.qml"},
+  "barWidget": {
+    "displayName": "WhatsApp Web",
+    "description": "Show unread count and toggle WhatsApp Web.",
+    "category": "Messaging",
+    "aliases": ["whatsapp", "wa"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {"icon": ""},
+    "schema": []
+  }
+}

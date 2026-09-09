@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+whatsapp_class='chrome-web.whatsapp.com__-Default'
+whatsapp_url='https://web.whatsapp.com/'
+
+find_whatsapp_address() {
+  hyprctl clients -j | jq -r --arg class "$whatsapp_class" \
+    '.[] | select(.class == $class or .initialClass == $class) | .address' | head -n1
+}
+
+address=$(find_whatsapp_address)
+if [[ -z "$address" ]]; then
+  setsid omarchy-launch-webapp "$whatsapp_url" >/dev/null 2>&1 &
+  exit 0
+fi
+
+workspace=$(hyprctl clients -j | jq -r --arg address "$address" \
+  '.[] | select(.address == $address) | .workspace.name' | head -n1)
+active_address=$(hyprctl activewindow -j | jq -r '.address // ""')
+active_workspace=$(hyprctl activeworkspace -j | jq -r '.name // ""')
+
+if [[ "$workspace" == "special:whatsapp" ]]; then
+  target_workspace="$active_workspace"
+  [[ "$target_workspace" == "special:whatsapp" || -z "$target_workspace" ]] && target_workspace="previous"
+  hyprctl dispatch "hl.dsp.window.move({ window = 'address:$address', workspace = '$target_workspace', follow = true })" >/dev/null
+  hyprctl dispatch "hl.dsp.focus({ window = 'address:$address' })" >/dev/null
+elif [[ "$active_address" == "$address" ]]; then
+  hyprctl dispatch "hl.dsp.window.move({ window = 'address:$address', workspace = 'special:whatsapp', follow = false })" >/dev/null
+else
+  hyprctl dispatch "hl.dsp.focus({ window = 'address:$address' })" >/dev/null
+fi
