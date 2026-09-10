@@ -110,7 +110,20 @@ Remove the shell plugin with:
 omarchy plugin remove roubilibo.whatsapp-webapp --yes
 ```
 
-If `scripts/install.sh` was used, remove its separately installed bridge,
-helper scripts, native-host manifest, Chromium extension entry, and the marked
-WhatsApp snippets from the user configuration. The installer creates timestamped
-backups before editing existing user files.
+To remove the complete integration installed by `scripts/install.sh`, run:
+
+```bash
+./scripts/uninstall.sh
+```
+
+Use `--yes` for non-interactive use. CLOE is preserved by default; add
+`--with-cloe` only if it was installed for this integration and should also be
+removed:
+
+```bash
+./scripts/uninstall.sh --with-cloe --yes
+```
+
+The uninstall script removes the separately installed bridge, helper scripts,
+native-host manifest, Chromium extension entry, and marked WhatsApp snippets.
+It creates timestamped backups before editing existing user configuration.
