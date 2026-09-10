@@ -12,10 +12,10 @@ else
   install_mode="install"
 fi
 
-if [[ "$install_mode" == "install" ]]; then
-  "$repo_dir/scripts/install-cloe.sh"
-else
+if [[ "$install_mode" == "update" ]]; then
   echo "Existing WhatsApp plugin detected; updating it. CLOE installation skipped."
+else
+  echo "Installing WhatsApp integration. CLOE installation skipped; run scripts/install-cloe.sh separately if needed."
 fi
 
 backup_file() {

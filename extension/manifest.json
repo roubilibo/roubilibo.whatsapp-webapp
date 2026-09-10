@@ -4,7 +4,7 @@
   "version": "1.0.2",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvIltyox253kpKgIXecMv7vjDM5u9jfxlSOatUEfcbOG3DI2op95+XvmJbcJGie132xEfs2pfDosdoCPELwVPDBCiziLxMg1EJz10hM2EUYDs8qTyTJ4ubRwEjwdMq1wE32Png2OJyV3wIYA4Av1Oa86cngM21yhIPvzA1nT8rq75iGGrYr9IiPiWApv+DEMMoWKka9N8YHS2M4xh4/yuO5hhrUdZIMg4d6WMyahfR1EX9j0Ra2SBkux+kXAIdwcaPUJAV0ArdTfz5m20Xb+IXBth2tk9tOCXGwnGlqRKv5dZJXq45myj+qLy846GP4r0gO68YZXI/qFw/2x3qBlUnQIDAQAB",
   "description": "Read only the WhatsApp Web unread badge and expose it locally.",
-  "permissions": ["nativeMessaging", "tabs"],
+  "permissions": ["nativeMessaging"],
   "host_permissions": ["https://web.whatsapp.com/*"],
   "background": {"service_worker": "background.js"},
   "content_scripts": [

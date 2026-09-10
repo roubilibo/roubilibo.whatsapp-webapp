@@ -1,5 +1,8 @@
 # Roubilibo WhatsApp Webapp
 
+An Omarchy bar plugin for WhatsApp Web. The plugin is community software and
+is not affiliated with or endorsed by WhatsApp or Meta.
+
 Portable source for the local Omarchy WhatsApp integration:
 
 - bar widget with a theme-colored WhatsApp icon;
@@ -20,11 +23,22 @@ From this directory:
 ./scripts/install.sh
 ```
 
-On the first install, the installer also installs CLOE, but intentionally does
-not create URL rules. On later runs, it detects the existing WhatsApp plugin
-and updates the WhatsApp files without reinstalling CLOE.
-Configure them in `chrome://extensions` → CLOE → Extension options. For
-Threads, add:
+For a normal Omarchy plugin installation, use the repository URL:
+
+```bash
+omarchy plugin add https://github.com/roubilibo/roubilibo.whatsapp-webapp.git --enable
+```
+
+The marketplace installation only installs the shell plugin. The optional
+`scripts/install.sh` additionally installs the unread bridge, Chromium
+extension, Hyprland helper scripts, and CLOE. Review that script before using
+it; it changes files under `~/.config/` and `~/.local/bin/` and downloads the
+pinned CLOE release from its upstream GitHub repository.
+
+The installer does not install CLOE automatically. If you want the separate
+Threads link integration, run `./scripts/install-cloe.sh` after reviewing it.
+It intentionally does not create URL rules. Configure CLOE in
+`chrome://extensions` → CLOE → Extension options. For Threads, add:
 
 ```regex
 ^https://(www\.)?threads\.com/
@@ -75,3 +89,16 @@ The WhatsApp unread extension only sends a numeric unread value to its local
 native host; it does not send chat names, message text, contacts, or account
 data. Link routing is handled separately by [CLOE](https://github.com/iltumio/cloe)
 using rules configured through its GUI.
+
+## Remove
+
+Remove the shell plugin with:
+
+```bash
+omarchy plugin remove roubilibo.whatsapp-webapp --yes
+```
+
+If `scripts/install.sh` was used, remove its separately installed bridge,
+helper scripts, native-host manifest, Chromium extension entry, and the marked
+WhatsApp snippets from the user configuration. The installer creates timestamped
+backups before editing existing user files.
