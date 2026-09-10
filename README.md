@@ -36,8 +36,14 @@ it; it changes files under `~/.config/` and `~/.local/bin/` and downloads the
 pinned CLOE release from its upstream GitHub repository.
 
 The installer does not install CLOE automatically. If you want the separate
-Threads link integration, run `./scripts/install-cloe.sh` after reviewing it.
-It intentionally does not create URL rules. Configure CLOE in
+Threads link integration, pass the explicit option after reviewing the script:
+
+```bash
+./scripts/install.sh --with-cloe
+```
+
+This invokes `scripts/install-cloe.sh`; it does not create URL rules.
+Configure CLOE in
 `chrome://extensions` → CLOE → Extension options. For Threads, add:
 
 ```regex

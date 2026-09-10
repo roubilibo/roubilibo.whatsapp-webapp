@@ -5,6 +5,16 @@ repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 home_dir=${HOME:?HOME is required}
 stamp=$(date +%Y%m%d-%H%M%S)
 plugin_dir="$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-webapp"
+with_cloe=false
+
+case "${1:-}" in
+  "") ;;
+  --with-cloe) with_cloe=true ;;
+  *)
+    echo "Usage: $0 [--with-cloe]" >&2
+    exit 2
+    ;;
+esac
 
 if [[ -f "$plugin_dir/manifest.json" ]]; then
   install_mode="update"
@@ -13,9 +23,15 @@ else
 fi
 
 if [[ "$install_mode" == "update" ]]; then
-  echo "Existing WhatsApp plugin detected; updating it. CLOE installation skipped."
+  echo "Existing WhatsApp plugin detected; updating it."
 else
-  echo "Installing WhatsApp integration. CLOE installation skipped; run scripts/install-cloe.sh separately if needed."
+  echo "Installing WhatsApp integration."
+fi
+
+if [[ "$with_cloe" == true ]]; then
+  "$repo_dir/scripts/install-cloe.sh"
+else
+  echo "CLOE installation skipped. Use --with-cloe to install it explicitly."
 fi
 
 backup_file() {
