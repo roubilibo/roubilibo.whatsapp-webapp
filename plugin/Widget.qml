@@ -17,12 +17,15 @@ BarWidget {
   readonly property string restartScript:
     Quickshell.env("HOME") + "/.local/bin/restart-whatsapp"
   property int unreadCount: 0
+  property bool whatsappRunning: false
   property bool popupOpen: false
-  implicitWidth: Style.bar.statusSlot + (root.unreadCount > 0 ? Style.space(12) : 0)
+  readonly property bool showBadge: root.whatsappRunning && root.unreadCount > 0
+  implicitWidth: Style.bar.statusSlot
   implicitHeight: barSize
 
   function refresh() {
     if (!stateProc.running) stateProc.running = true
+    if (!clientsProc.running) clientsProc.running = true
   }
 
   function parseState(raw) {
@@ -31,6 +34,19 @@ BarWidget {
       root.unreadCount = Math.max(0, Number(state.unread) || 0)
     } catch (e) {
       root.unreadCount = 0
+    }
+  }
+
+  function parseClients(raw) {
+    try {
+      var clients = JSON.parse(String(raw || "[]"))
+      root.whatsappRunning = clients.some(function(client) {
+        var isWhatsapp = client.class === "chrome-web.whatsapp.com__-Default" ||
+          client.initialClass === "chrome-web.whatsapp.com__-Default"
+        return isWhatsapp
+      })
+    } catch (e) {
+      root.whatsappRunning = false
     }
   }
 
@@ -53,6 +69,15 @@ BarWidget {
     }
   }
 
+  Process {
+    id: clientsProc
+    command: ["hyprctl", "clients", "-j"]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: root.parseClients(text)
+    }
+  }
+
   Process { id: toggleProc }
   Process { id: actionProc }
 
@@ -69,7 +94,7 @@ BarWidget {
     width: 16
     height: 16
     text: "\uf232"
-    color: Color.foreground
+    color: root.whatsappRunning ? "#25D366" : Color.foreground
     font.family: "Font Awesome 7 Brands"
     font.pixelSize: 13
     renderType: Text.NativeRendering
@@ -78,7 +103,7 @@ BarWidget {
   }
 
   Rectangle {
-    visible: root.unreadCount > 0
+    visible: root.showBadge
     width: Math.max(Style.space(13), badgeText.implicitWidth + Style.space(6))
     height: Style.space(13)
     radius: height / 2
