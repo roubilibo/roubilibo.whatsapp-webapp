@@ -12,7 +12,12 @@ BarWidget {
     Quickshell.env("HOME") + "/.local/state/omarchy/whatsapp-unread.json"
   readonly property string toggleScript:
     Quickshell.env("HOME") + "/.local/bin/toggle-whatsapp"
+  readonly property string closeScript:
+    Quickshell.env("HOME") + "/.local/bin/close-whatsapp"
+  readonly property string restartScript:
+    Quickshell.env("HOME") + "/.local/bin/restart-whatsapp"
   property int unreadCount: 0
+  property bool popupOpen: false
   implicitWidth: Style.bar.statusSlot + (root.unreadCount > 0 ? Style.space(12) : 0)
   implicitHeight: barSize
 
@@ -49,6 +54,15 @@ BarWidget {
   }
 
   Process { id: toggleProc }
+  Process { id: actionProc }
+
+  function runAction(script) {
+    actionProc.command = [script]
+    actionProc.running = true
+    root.popupOpen = false
+  }
+
+  function close() { root.popupOpen = false }
 
   Text {
     anchors.centerIn: parent
@@ -84,10 +98,114 @@ BarWidget {
 
   MouseArea {
     anchors.fill: parent
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
     cursorShape: Qt.PointingHandCursor
-    onClicked: {
+    onClicked: function(mouse) {
+      if (mouse.button === Qt.RightButton) {
+        root.popupOpen = true
+        return
+      }
       toggleProc.command = [root.toggleScript]
       toggleProc.running = true
+    }
+  }
+
+  PopupCard {
+    id: popup
+    anchorItem: root
+    bar: root.bar
+    owner: root
+    open: root.popupOpen
+    contentWidth: popup.fittedContentWidth(Style.space(300))
+    contentHeight: popup.fittedContentHeight(menuColumn.implicitHeight)
+
+    Column {
+      id: menuColumn
+      width: parent.width
+      spacing: Style.space(8)
+
+      Text {
+        width: parent.width
+        text: "WhatsApp Web"
+        color: Color.popups.text
+        font.family: Style.font.menuFamily
+        font.pixelSize: Style.font.subtitle
+        font.bold: true
+      }
+
+      Rectangle {
+        width: parent.width
+        height: Style.spacing.hairline
+        color: Util.alpha(Color.popups.border, 0.5)
+      }
+
+      Rectangle {
+        width: parent.width
+        height: Style.spacing.popupRowHeight
+        radius: Style.cornerRadius
+        color: closeMouse.containsMouse ? Color.menu.selectedBackground : "transparent"
+
+        Text {
+          anchors.left: parent.left
+          anchors.leftMargin: Style.spacing.controlPaddingX
+          anchors.verticalCenter: parent.verticalCenter
+          text: "󰆴"
+          color: closeMouse.containsMouse ? Color.menu.selectedText : Color.popups.text
+          font.family: Style.font.menuFamily
+          font.pixelSize: Style.font.body
+        }
+
+        Text {
+          anchors.left: parent.left
+          anchors.leftMargin: Style.spacing.controlPaddingX + Style.space(24)
+          anchors.verticalCenter: parent.verticalCenter
+          text: "Close WhatsApp"
+          color: closeMouse.containsMouse ? Color.menu.selectedText : Color.popups.text
+          font.family: Style.font.menuFamily
+          font.pixelSize: Style.font.body
+        }
+
+        MouseArea {
+          id: closeMouse
+          anchors.fill: parent
+          hoverEnabled: true
+          onClicked: root.runAction(root.closeScript)
+        }
+      }
+
+      Rectangle {
+        width: parent.width
+        height: Style.spacing.popupRowHeight
+        radius: Style.cornerRadius
+        color: restartMouse.containsMouse ? Color.menu.selectedBackground : "transparent"
+
+        Text {
+          anchors.left: parent.left
+          anchors.leftMargin: Style.spacing.controlPaddingX
+          anchors.verticalCenter: parent.verticalCenter
+          text: "󰑐"
+          color: restartMouse.containsMouse ? Color.menu.selectedText : Color.popups.text
+          font.family: Style.font.menuFamily
+          font.pixelSize: Style.font.body
+        }
+
+        Text {
+          anchors.left: parent.left
+          anchors.leftMargin: Style.spacing.controlPaddingX + Style.space(24)
+          anchors.verticalCenter: parent.verticalCenter
+          text: "Restart WhatsApp"
+          color: restartMouse.containsMouse ? Color.menu.selectedText : Color.popups.text
+          font.family: Style.font.menuFamily
+          font.pixelSize: Style.font.body
+        }
+
+        MouseArea {
+          id: restartMouse
+          anchors.fill: parent
+          hoverEnabled: true
+          onClicked: root.runAction(root.restartScript)
+        }
+      }
     }
   }
 }

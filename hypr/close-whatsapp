@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+whatsapp_class='chrome-web.whatsapp.com__-Default'
+
+hyprctl clients -j | jq -r --arg class "$whatsapp_class" \
+  '.[] | select(.class == $class or .initialClass == $class) | .address' |
+  while IFS= read -r address; do
+    [[ -n "$address" ]] && hyprctl dispatch "hl.dsp.window.close({ window = 'address:$address' })" >/dev/null
+  done

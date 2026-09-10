@@ -4,17 +4,28 @@ set -euo pipefail
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 home_dir=${HOME:?HOME is required}
 stamp=$(date +%Y%m%d-%H%M%S)
+plugin_dir="$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-webapp"
 
-"$repo_dir/scripts/install-cloe.sh"
+if [[ -f "$plugin_dir/manifest.json" ]]; then
+  install_mode="update"
+else
+  install_mode="install"
+fi
+
+if [[ "$install_mode" == "install" ]]; then
+  "$repo_dir/scripts/install-cloe.sh"
+else
+  echo "Existing WhatsApp plugin detected; updating it. CLOE installation skipped."
+fi
 
 backup_file() {
   local file=$1
   [[ -e "$file" ]] && cp -a -- "$file" "$file.bak.$stamp"
 }
 
-install -Dm644 "$repo_dir/plugin/manifest.json" "$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-webapp/manifest.json"
-install -Dm644 "$repo_dir/plugin/Widget.qml" "$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-webapp/Widget.qml"
-install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-webapp/whatsapp.svg"
+install -Dm644 "$repo_dir/plugin/manifest.json" "$plugin_dir/manifest.json"
+install -Dm644 "$repo_dir/plugin/Widget.qml" "$plugin_dir/Widget.qml"
+install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$plugin_dir/whatsapp.svg"
 
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-unread"
 install -Dm644 "$repo_dir/extension/manifest.json" "$extension_dir/manifest.json"
@@ -29,6 +40,8 @@ sed "s|__HOME__|$home_dir|g" "$repo_dir/native-host/com.roubilibo.whatsapp_unrea
 chmod 644 "$host_dir/com.roubilibo.whatsapp_unread.json"
 
 install -Dm755 "$repo_dir/hypr/toggle-whatsapp" "$home_dir/.local/bin/toggle-whatsapp"
+install -Dm755 "$repo_dir/hypr/close-whatsapp" "$home_dir/.local/bin/close-whatsapp"
+install -Dm755 "$repo_dir/hypr/restart-whatsapp" "$home_dir/.local/bin/restart-whatsapp"
 install -Dm755 "$repo_dir/hypr/waydroid-aware-close" "$home_dir/.local/bin/waydroid-aware-close"
 
 bindings_file="$home_dir/.config/hypr/bindings.lua"
@@ -63,7 +76,7 @@ if ! grep -Fq "$extension_dir" "$flags_file"; then
   fi
 fi
 
-echo "Installed WhatsApp plugin and native bridge."
+echo "WhatsApp plugin $install_mode completed."
 if command -v omarchy >/dev/null 2>&1; then
   omarchy bar move roubilibo.whatsapp-webapp --section right || true
 fi

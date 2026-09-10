@@ -7,6 +7,7 @@ Portable source for the local Omarchy WhatsApp integration:
 - Chromium MV3 extension using Native Messaging;
 - `Super+Shift+W` toggle behavior;
 - `Super+W` hide/close behavior;
+- right-click menu with Close WhatsApp and Restart WhatsApp actions;
 - `special:whatsapp` used only as the hidden storage workspace.
 - external Threads links are handled by the separate CLOE PWA-link extension
   and opened through the system default browser.
@@ -19,7 +20,9 @@ From this directory:
 ./scripts/install.sh
 ```
 
-The installer also installs CLOE, but intentionally does not create URL rules.
+On the first install, the installer also installs CLOE, but intentionally does
+not create URL rules. On later runs, it detects the existing WhatsApp plugin
+and updates the WhatsApp files without reinstalling CLOE.
 Configure them in `chrome://extensions` → CLOE → Extension options. For
 Threads, add:
 
@@ -54,6 +57,11 @@ Restart the WhatsApp Web app once so Chromium loads the extension.
 - moves active WhatsApp to `special:whatsapp` instead of closing it;
 - restores it when invoked while WhatsApp is in the special workspace;
 - retains the existing Waydroid-stop and normal-close behavior for other windows.
+
+Right-clicking the bar icon opens a small menu with:
+
+- `Close WhatsApp`, which closes all WhatsApp Web windows;
+- `Restart WhatsApp`, which closes them and launches WhatsApp Web again.
 
 ## Files
 
