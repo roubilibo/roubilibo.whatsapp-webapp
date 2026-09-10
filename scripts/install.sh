@@ -39,9 +39,9 @@ backup_file() {
   [[ -e "$file" ]] && cp -a -- "$file" "$file.bak.$stamp"
 }
 
-install -Dm644 "$repo_dir/plugin/manifest.json" "$plugin_dir/manifest.json"
-install -Dm644 "$repo_dir/plugin/Widget.qml" "$plugin_dir/Widget.qml"
-install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$plugin_dir/whatsapp.svg"
+install -Dm644 "$repo_dir/manifest.json" "$plugin_dir/manifest.json"
+install -Dm644 "$repo_dir/plugin/Widget.qml" "$plugin_dir/plugin/Widget.qml"
+install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$plugin_dir/plugin/whatsapp.svg"
 
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-unread"
 install -Dm644 "$repo_dir/extension/manifest.json" "$extension_dir/manifest.json"

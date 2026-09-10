@@ -52,6 +52,9 @@ Threads links, add:
 ^https://(www\.)?threads\.com/
 ```
 
+The CLOE installer verifies the SHA-256 digests published by GitHub for the
+selected CLOE release before installing its extension and native host.
+
 The installer backs up edited user files before changing them. It installs the
 bar plugin, extension, native host, and scripts, then prints the small binding
 and bar-layout snippets that must be merged into the local Omarchy config.

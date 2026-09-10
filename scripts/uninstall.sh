@@ -67,11 +67,31 @@ remove_load_extension() {
   rm -f -- "$temp"
 }
 
+remove_shell_entry() {
+  local file=$1 temp
+  [[ -f "$file" ]] || return 0
+  command -v jq >/dev/null 2>&1 || {
+    echo "Warning: jq is unavailable; shell.json was not changed." >&2
+    return 0
+  }
+  temp=$(mktemp)
+  jq --arg id "roubilibo.whatsapp-webapp" \
+    'del(.bar.layout[]? | .[]? | select(.id == $id))
+     | del(.plugins[]? | select(.id == $id))' \
+    "$file" > "$temp"
+  if ! cmp -s "$file" "$temp"; then
+    backup_file "$file"
+    install -m "$(stat -c '%a' "$file")" "$temp" "$file"
+  fi
+  rm -f -- "$temp"
+}
+
 plugin_dir="$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-webapp"
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-unread"
 flags_file="$home_dir/.config/chromium-flags.conf"
 native_dir="$home_dir/.config/chromium/NativeMessagingHosts"
 
+remove_shell_entry "$home_dir/.config/omarchy/shell.json"
 remove_block "$home_dir/.config/hypr/bindings.lua" \
   "-- BEGIN roubilibo.whatsapp-webapp" "-- END roubilibo.whatsapp-webapp"
 remove_block "$home_dir/.config/hypr/windows.lua" \

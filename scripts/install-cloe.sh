@@ -4,20 +4,55 @@ set -euo pipefail
 home_dir=${HOME:?HOME is required}
 version=${CLOE_VERSION:-v0.1.0}
 base_url="https://github.com/iltumio/cloe/releases/download/$version"
+api_url="https://api.github.com/repos/iltumio/cloe/releases/tags/$version"
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/cloe"
 native_dir="$home_dir/.config/chromium/NativeMessagingHosts"
 flags_file="$home_dir/.config/chromium-flags.conf"
 stamp=$(date +%Y%m%d-%H%M%S)
+download_dir=$(mktemp -d)
+trap 'rm -rf -- "$download_dir"' EXIT
 
-mkdir -p "$extension_dir" "$native_dir" "$(dirname -- "$flags_file")"
-curl -fsSL "$base_url/cloe-extension.zip" -o /tmp/cloe-extension.zip
-unzip -oq /tmp/cloe-extension.zip -d "$extension_dir"
+command -v jq >/dev/null 2>&1 || { echo "jq is required to verify CLOE release digests." >&2; exit 1; }
+command -v sha256sum >/dev/null 2>&1 || { echo "sha256sum is required to verify CLOE release digests." >&2; exit 1; }
+
+curl -fsSL -H 'Accept: application/vnd.github+json' "$api_url" \
+  -o "$download_dir/release.json"
+
+asset_digest() {
+  local asset=$1 digest
+  digest=$(jq -r --arg asset "$asset" \
+    '.assets[] | select(.name == $asset) | .digest // empty' \
+    "$download_dir/release.json")
+  [[ "$digest" == sha256:* ]] || {
+    echo "No SHA-256 digest published for CLOE asset: $asset" >&2
+    exit 1
+  }
+  printf '%s\n' "${digest#sha256:}"
+}
+
+download_verified() {
+  local asset=$1 destination=$2 expected actual
+  expected=$(asset_digest "$asset")
+  curl -fsSL "$base_url/$asset" -o "$destination"
+  actual=$(sha256sum "$destination" | awk '{print $1}')
+  [[ "$actual" == "$expected" ]] || {
+    echo "CLOE checksum mismatch for $asset" >&2
+    exit 1
+  }
+}
+
 case "$(uname -m)" in
   x86_64|amd64) host_asset="cloe-host-linux-x86_64" ;;
   aarch64|arm64) host_asset="cloe-host-linux-aarch64" ;;
   *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
 esac
-curl -fsSL "$base_url/$host_asset" -o "$home_dir/.local/bin/cloe-host"
+
+download_verified "cloe-extension.zip" "$download_dir/cloe-extension.zip"
+download_verified "$host_asset" "$download_dir/$host_asset"
+
+mkdir -p "$extension_dir" "$native_dir" "$(dirname -- "$flags_file")"
+unzip -oq "$download_dir/cloe-extension.zip" -d "$extension_dir"
+install -Dm755 "$download_dir/$host_asset" "$home_dir/.local/bin/cloe-host"
 chmod 755 "$home_dir/.local/bin/cloe-host"
 
 extension_id=$(python3 - "$extension_dir" <<'PY'
