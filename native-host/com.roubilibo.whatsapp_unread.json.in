@@ -4,6 +4,6 @@
   "path": "__HOME__/.local/bin/whatsapp-companion-unread-host",
   "type": "stdio",
   "allowed_origins": [
-    "chrome-extension://nedgbcjkbonofenkoignbaieecdeoddg/"
+    "chrome-extension://__EXTENSION_ID__/"
   ]
 }

@@ -52,7 +52,15 @@ install -Dm644 "$repo_dir/extension/content.js" "$extension_dir/content.js"
 install -Dm755 "$repo_dir/native-host/whatsapp-unread-host.py" "$home_dir/.local/bin/whatsapp-companion-unread-host"
 host_dir="$home_dir/.config/chromium/NativeMessagingHosts"
 mkdir -p "$host_dir"
-sed "s|__HOME__|$home_dir|g" "$repo_dir/native-host/com.roubilibo.whatsapp_unread.json.in" \
+extension_id=$(python3 - "$extension_dir" <<'PY'
+import hashlib, sys
+path = sys.argv[1]
+digest = hashlib.sha256(path.encode()).hexdigest()[:32]
+print("".join(chr(ord("a") + int(char, 16)) for char in digest))
+PY
+)
+sed -e "s|__HOME__|$home_dir|g" -e "s|__EXTENSION_ID__|$extension_id|g" \
+  "$repo_dir/native-host/com.roubilibo.whatsapp_unread.json.in" \
   > "$host_dir/com.roubilibo.whatsapp_companion.json"
 chmod 644 "$host_dir/com.roubilibo.whatsapp_companion.json"
 
