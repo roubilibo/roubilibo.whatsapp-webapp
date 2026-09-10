@@ -12,7 +12,7 @@ Portable source for the local Omarchy WhatsApp integration:
 - `Super+W` hide/close behavior;
 - right-click menu with Close WhatsApp and Restart WhatsApp actions;
 - `special:whatsapp` used only as the hidden storage workspace.
-- external Threads links are handled by the separate CLOE PWA-link extension
+- external webapp links are handled by the separate CLOE PWA-link extension
   and opened through the system default browser.
 
 ## Install
@@ -35,8 +35,9 @@ extension, Hyprland helper scripts, and CLOE. Review that script before using
 it; it changes files under `~/.config/` and `~/.local/bin/` and downloads the
 pinned CLOE release from its upstream GitHub repository.
 
-The installer does not install CLOE automatically. If you want the separate
-Threads link integration, pass the explicit option after reviewing the script:
+The installer does not install CLOE automatically. If you want external links
+from webapps to open in the system default browser, pass the explicit option
+after reviewing the script:
 
 ```bash
 ./scripts/install.sh --with-cloe
@@ -44,7 +45,8 @@ Threads link integration, pass the explicit option after reviewing the script:
 
 This invokes `scripts/install-cloe.sh`; it does not create URL rules.
 Configure CLOE in
-`chrome://extensions` → CLOE → Extension options. For example Threads, add:
+`chrome://extensions` → CLOE → Extension options. For example, to route
+Threads links, add:
 
 ```regex
 ^https://(www\.)?threads\.com/
@@ -97,8 +99,8 @@ data. Link routing is handled separately by [CLOE](https://github.com/iltumio/cl
 using rules configured through its GUI.
 
 Shout-out to [iltumio](https://github.com/iltumio) for creating and maintaining
-[CLOE](https://github.com/iltumio/cloe), the external-link helper used by the
-optional Threads integration.
+[CLOE](https://github.com/iltumio/cloe), the external-link helper used by this
+integration.
 
 ## Remove
 
