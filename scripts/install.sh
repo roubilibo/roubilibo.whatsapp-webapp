@@ -76,7 +76,7 @@ assert_managed_path "$home_dir/.local/bin/whatsapp-companion-toggle"
 assert_managed_path "$home_dir/.local/bin/whatsapp-companion-close"
 assert_managed_path "$home_dir/.local/bin/whatsapp-companion-restart"
 assert_managed_path "$home_dir/.local/bin/whatsapp-companion-aware-close"
-install -Dm644 "$repo_dir/extension/manifest.json" "$extension_dir/manifest.json"
+install -Dm644 "$repo_dir/extension/chrome-extension.json" "$extension_dir/manifest.json"
 install -Dm644 "$repo_dir/extension/background.js" "$extension_dir/background.js"
 install -Dm644 "$repo_dir/extension/content.js" "$extension_dir/content.js"
 

@@ -16,10 +16,10 @@ done
 
 bash -n "$repo_dir"/scripts/*.sh "$repo_dir"/hypr/*
 jq empty "$repo_dir/manifest.json" \
-  "$repo_dir/extension/manifest.json" \
+  "$repo_dir/extension/chrome-extension.json" \
   "$repo_dir/native-host/com.roubilibo.whatsapp_unread.json.in"
 jq -e '.permissions == ["nativeMessaging"]' \
-  "$repo_dir/extension/manifest.json" >/dev/null || fail "extension permissions expanded"
+  "$repo_dir/extension/chrome-extension.json" >/dev/null || fail "extension permissions expanded"
 omarchy plugin validate "$repo_dir"
 
 install -d "$test_home/.config/omarchy/plugins/other.plugin"
