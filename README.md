@@ -44,7 +44,7 @@ Threads link integration, pass the explicit option after reviewing the script:
 
 This invokes `scripts/install-cloe.sh`; it does not create URL rules.
 Configure CLOE in
-`chrome://extensions` → CLOE → Extension options. For Threads, add:
+`chrome://extensions` → CLOE → Extension options. For example Threads, add:
 
 ```regex
 ^https://(www\.)?threads\.com/
