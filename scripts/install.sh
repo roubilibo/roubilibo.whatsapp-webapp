@@ -52,11 +52,16 @@ install -Dm644 "$repo_dir/extension/content.js" "$extension_dir/content.js"
 install -Dm755 "$repo_dir/native-host/whatsapp-unread-host.py" "$home_dir/.local/bin/whatsapp-companion-unread-host"
 host_dir="$home_dir/.config/chromium/NativeMessagingHosts"
 mkdir -p "$host_dir"
-extension_id=$(python3 - "$extension_dir" <<'PY'
-import hashlib, sys
-path = sys.argv[1]
-digest = hashlib.sha256(path.encode()).hexdigest()[:32]
-print("".join(chr(ord("a") + int(char, 16)) for char in digest))
+extension_id=$(python3 - "$extension_dir/manifest.json" <<'PY'
+import base64, hashlib, json, sys
+manifest = json.load(open(sys.argv[1], encoding="utf-8"))
+key = manifest.get("key")
+if key:
+    digest = hashlib.sha256(base64.b64decode(key)).digest()[:16]
+else:
+    digest = hashlib.sha256(sys.argv[1].encode()).digest()[:16]
+print("".join(chr(97 + ((byte >> shift) & 15))
+            for byte in digest for shift in (4, 0)))
 PY
 )
 sed -e "s|__HOME__|$home_dir|g" -e "s|__EXTENSION_ID__|$extension_id|g" \
