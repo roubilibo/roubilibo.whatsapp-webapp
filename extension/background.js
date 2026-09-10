@@ -2,7 +2,7 @@ let nativePort = null;
 
 function sendUnread(unread) {
   if (!nativePort) {
-    nativePort = chrome.runtime.connectNative("com.roubilibo.whatsapp_unread");
+    nativePort = chrome.runtime.connectNative("com.roubilibo.whatsapp_companion");
     nativePort.onDisconnect.addListener(() => { nativePort = null; });
   }
   nativePort.postMessage({ unread: Math.max(0, Number(unread) || 0) });

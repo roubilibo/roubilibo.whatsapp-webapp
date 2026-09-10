@@ -4,7 +4,8 @@ set -euo pipefail
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 home_dir=${HOME:?HOME is required}
 stamp=$(date +%Y%m%d-%H%M%S)
-plugin_dir="$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-webapp"
+plugin_id='roubilibo.whatsapp-companion'
+plugin_dir="$home_dir/.config/omarchy/plugins/$plugin_id"
 with_cloe=false
 
 case "${1:-}" in
@@ -43,30 +44,30 @@ install -Dm644 "$repo_dir/manifest.json" "$plugin_dir/manifest.json"
 install -Dm644 "$repo_dir/plugin/Widget.qml" "$plugin_dir/plugin/Widget.qml"
 install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$plugin_dir/plugin/whatsapp.svg"
 
-extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-unread"
+extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-companion"
 install -Dm644 "$repo_dir/extension/manifest.json" "$extension_dir/manifest.json"
 install -Dm644 "$repo_dir/extension/background.js" "$extension_dir/background.js"
 install -Dm644 "$repo_dir/extension/content.js" "$extension_dir/content.js"
 
-install -Dm755 "$repo_dir/native-host/whatsapp-unread-host.py" "$home_dir/.local/bin/whatsapp-unread-host"
+install -Dm755 "$repo_dir/native-host/whatsapp-unread-host.py" "$home_dir/.local/bin/whatsapp-companion-unread-host"
 host_dir="$home_dir/.config/chromium/NativeMessagingHosts"
 mkdir -p "$host_dir"
 sed "s|__HOME__|$home_dir|g" "$repo_dir/native-host/com.roubilibo.whatsapp_unread.json.in" \
-  > "$host_dir/com.roubilibo.whatsapp_unread.json"
-chmod 644 "$host_dir/com.roubilibo.whatsapp_unread.json"
+  > "$host_dir/com.roubilibo.whatsapp_companion.json"
+chmod 644 "$host_dir/com.roubilibo.whatsapp_companion.json"
 
-install -Dm755 "$repo_dir/hypr/toggle-whatsapp" "$home_dir/.local/bin/toggle-whatsapp"
-install -Dm755 "$repo_dir/hypr/close-whatsapp" "$home_dir/.local/bin/close-whatsapp"
-install -Dm755 "$repo_dir/hypr/restart-whatsapp" "$home_dir/.local/bin/restart-whatsapp"
-install -Dm755 "$repo_dir/hypr/waydroid-aware-close" "$home_dir/.local/bin/waydroid-aware-close"
+install -Dm755 "$repo_dir/hypr/toggle-whatsapp" "$home_dir/.local/bin/whatsapp-companion-toggle"
+install -Dm755 "$repo_dir/hypr/close-whatsapp" "$home_dir/.local/bin/whatsapp-companion-close"
+install -Dm755 "$repo_dir/hypr/restart-whatsapp" "$home_dir/.local/bin/whatsapp-companion-restart"
+install -Dm755 "$repo_dir/hypr/waydroid-aware-close" "$home_dir/.local/bin/whatsapp-companion-aware-close"
 
 bindings_file="$home_dir/.config/hypr/bindings.lua"
-if [[ -e "$bindings_file" ]] && ! grep -Fq 'toggle-whatsapp' "$bindings_file"; then
+if [[ -e "$bindings_file" ]] && ! grep -Fq 'whatsapp-companion-toggle' "$bindings_file"; then
   backup_file "$bindings_file"
   {
-    printf '\n-- BEGIN roubilibo.whatsapp-webapp\n'
+    printf '\n-- BEGIN roubilibo.whatsapp-companion\n'
     cat "$repo_dir/hypr/bindings.lua"
-    printf -- '-- END roubilibo.whatsapp-webapp\n'
+    printf -- '-- END roubilibo.whatsapp-companion\n'
   } >> "$bindings_file"
 fi
 
@@ -74,9 +75,9 @@ windows_file="$home_dir/.config/hypr/windows.lua"
 if [[ -e "$windows_file" ]] && ! grep -Fq 'chrome-web[.]whatsapp' "$windows_file"; then
   backup_file "$windows_file"
   {
-    printf '\n-- BEGIN roubilibo.whatsapp-webapp\n'
+    printf '\n-- BEGIN roubilibo.whatsapp-companion\n'
     cat "$repo_dir/hypr/windows.lua"
-    printf -- '-- END roubilibo.whatsapp-webapp\n'
+    printf -- '-- END roubilibo.whatsapp-companion\n'
   } >> "$windows_file"
 fi
 
@@ -94,7 +95,7 @@ fi
 
 echo "WhatsApp plugin $install_mode completed."
 if command -v omarchy >/dev/null 2>&1; then
-  omarchy bar move roubilibo.whatsapp-webapp --section right || true
+  omarchy bar move "$plugin_id" --section right || true
 fi
 echo "Then run: hyprctl reload && omarchy-shell shell rescanPlugins"
 echo "Restart WhatsApp Web once to load the extension."

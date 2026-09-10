@@ -8,8 +8,8 @@ import tempfile
 from urllib.parse import urlparse
 
 STATE_DIR = os.path.expanduser("~/.local/state/omarchy")
-STATE_PATH = os.path.join(STATE_DIR, "whatsapp-unread.json")
-DEBUG_PATH = os.path.join(STATE_DIR, "whatsapp-unread-debug.log")
+STATE_PATH = os.path.join(STATE_DIR, "whatsapp-companion.json")
+DEBUG_PATH = os.path.join(STATE_DIR, "whatsapp-companion-debug.log")
 
 def debug_log(event, detail=""):
     try:
@@ -28,7 +28,7 @@ def reply(message):
 
 def write_state(unread):
     os.makedirs(STATE_DIR, mode=0o700, exist_ok=True)
-    fd, temp_path = tempfile.mkstemp(prefix="whatsapp-unread.", dir=STATE_DIR)
+    fd, temp_path = tempfile.mkstemp(prefix="whatsapp-companion.", dir=STATE_DIR)
     try:
         with os.fdopen(fd, "w") as handle:
             json.dump({"unread": max(0, int(unread))}, handle)

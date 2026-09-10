@@ -110,7 +110,7 @@ integration.
 Remove the shell plugin with:
 
 ```bash
-omarchy plugin remove roubilibo.whatsapp-webapp --yes
+omarchy plugin remove roubilibo.whatsapp-companion --yes
 ```
 
 To remove the complete integration installed by `scripts/install.sh`, run:

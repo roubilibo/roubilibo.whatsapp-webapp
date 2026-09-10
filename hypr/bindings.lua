@@ -1,5 +1,5 @@
 -- Add to ~/.config/hypr/bindings.lua after installing the scripts.
 hl.unbind("SUPER + W")
-o.bind("SUPER + W", "Close window / stop Waydroid session", "~/.local/bin/waydroid-aware-close")
+o.bind("SUPER + W", "Close window / stop Waydroid session", "~/.local/bin/whatsapp-companion-aware-close")
 hl.unbind("SUPER + SHIFT + W")
-o.bind("SUPER + SHIFT + W", "Toggle WhatsApp", "~/.local/bin/toggle-whatsapp")
+o.bind("SUPER + SHIFT + W", "Toggle WhatsApp", "~/.local/bin/whatsapp-companion-toggle")

@@ -6,16 +6,16 @@ import qs.Ui
 
 BarWidget {
   id: root
-  moduleName: "roubilibo.whatsapp-webapp"
+  moduleName: "roubilibo.whatsapp-companion"
 
   readonly property string unreadState:
-    Quickshell.env("HOME") + "/.local/state/omarchy/whatsapp-unread.json"
+    Quickshell.env("HOME") + "/.local/state/omarchy/whatsapp-companion.json"
   readonly property string toggleScript:
-    Quickshell.env("HOME") + "/.local/bin/toggle-whatsapp"
+    Quickshell.env("HOME") + "/.local/bin/whatsapp-companion-toggle"
   readonly property string closeScript:
-    Quickshell.env("HOME") + "/.local/bin/close-whatsapp"
+    Quickshell.env("HOME") + "/.local/bin/whatsapp-companion-close"
   readonly property string restartScript:
-    Quickshell.env("HOME") + "/.local/bin/restart-whatsapp"
+    Quickshell.env("HOME") + "/.local/bin/whatsapp-companion-restart"
   property int unreadCount: 0
   property bool whatsappRunning: false
   property bool popupOpen: false
