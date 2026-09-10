@@ -9,6 +9,32 @@ extension_dir="$home_dir/.config/omarchy/chromium/extensions/cloe"
 native_dir="$home_dir/.config/chromium/NativeMessagingHosts"
 flags_file="$home_dir/.config/chromium-flags.conf"
 stamp=$(date +%Y%m%d-%H%M%S)
+
+assert_safe_home() {
+  [[ "$home_dir" == /* && "$home_dir" != / ]] || {
+    echo "Refusing to use unsafe HOME: $home_dir" >&2
+    exit 1
+  }
+}
+
+assert_managed_path() {
+  local path=$1
+  case "$path" in
+    "$home_dir/.config/omarchy/chromium/extensions/"*|\
+    "$home_dir/.config/chromium/NativeMessagingHosts/"*|\
+    "$home_dir/.local/bin/"*) ;;
+    *)
+      echo "Refusing unmanaged path: $path" >&2
+      exit 1
+      ;;
+  esac
+}
+
+assert_safe_home
+assert_managed_path "$extension_dir"
+assert_managed_path "$native_dir/com.iltumio.cloe.json"
+assert_managed_path "$home_dir/.local/bin/cloe-host"
+
 download_dir=$(mktemp -d)
 trap 'rm -rf -- "$download_dir"' EXIT
 

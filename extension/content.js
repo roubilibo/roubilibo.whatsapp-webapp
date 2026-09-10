@@ -13,6 +13,13 @@
     const titleMatch = document.title.match(/(?:^|\s|\()([0-9][0-9,]*)\)?\s*(?:WhatsApp|web\.whatsapp\.com)/i);
     if (titleMatch) return Number(titleMatch[1].replace(/,/g, "")) || 0;
 
+    // WhatsApp's global unread filter is currently rendered as a visible
+    // button label such as "Unread 10", without a stable test id.
+    const unreadFilter = [...document.querySelectorAll("button, [role=button]")]
+      .map((node) => (node.textContent || "").trim().match(/^Unread\s+([0-9][0-9,]*)$/i))
+      .find((match) => match);
+    if (unreadFilter) return Number(unreadFilter[1].replace(/,/g, "")) || 0;
+
     const header = document.querySelector("#side > header, #side header");
     if (header) {
       const values = [...header.querySelectorAll("*")]

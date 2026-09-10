@@ -7,6 +7,30 @@ stamp=$(date +%Y%m%d-%H%M%S)
 remove_cloe=false
 assume_yes=false
 
+assert_safe_home() {
+  [[ "$home_dir" == /* && "$home_dir" != / ]] || {
+    echo "Refusing to use unsafe HOME: $home_dir" >&2
+    exit 1
+  }
+}
+
+assert_managed_path() {
+  local path=$1
+  case "$path" in
+    "$home_dir/.config/omarchy/plugins/"*|\
+    "$home_dir/.config/omarchy/chromium/extensions/"*|\
+    "$home_dir/.config/chromium/NativeMessagingHosts/"*|\
+    "$home_dir/.local/bin/"*|\
+    "$home_dir/.local/state/omarchy/"*) ;;
+    *)
+      echo "Refusing unmanaged path: $path" >&2
+      exit 1
+      ;;
+  esac
+}
+
+assert_safe_home
+
 for arg in "$@"; do
   case "$arg" in
     --with-cloe) remove_cloe=true ;;
@@ -46,17 +70,6 @@ remove_block() {
   if [[ ! -s "$file" ]]; then
     : > "$file"
   fi
-  rm -f -- "$temp"
-}
-
-remove_matching_lines() {
-  local file=$1 pattern=$2 temp
-  [[ -f "$file" ]] || return 0
-  grep -Fq -- "$pattern" "$file" || return 0
-  backup_file "$file"
-  temp=$(mktemp)
-  awk -v pattern="$pattern" 'index($0, pattern) == 0 { print }' "$file" > "$temp"
-  install -m "$(stat -c '%a' "$file")" "$temp" "$file"
   rm -f -- "$temp"
 }
 
@@ -120,6 +133,35 @@ legacy_extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-unr
 flags_file="$home_dir/.config/chromium-flags.conf"
 native_dir="$home_dir/.config/chromium/NativeMessagingHosts"
 
+remove_dirs=(
+  "$plugin_dir"
+  "$legacy_plugin_dir"
+  "$extension_dir"
+  "$legacy_extension_dir"
+)
+remove_files=(
+  "$home_dir/.local/bin/whatsapp-companion-unread-host"
+  "$home_dir/.local/bin/whatsapp-companion-toggle"
+  "$home_dir/.local/bin/whatsapp-companion-close"
+  "$home_dir/.local/bin/whatsapp-companion-restart"
+  "$home_dir/.local/bin/whatsapp-companion-aware-close"
+  "$home_dir/.local/bin/whatsapp-unread-host"
+  "$home_dir/.local/bin/toggle-whatsapp"
+  "$home_dir/.local/bin/close-whatsapp"
+  "$home_dir/.local/bin/restart-whatsapp"
+  "$home_dir/.local/bin/waydroid-aware-close"
+  "$native_dir/com.roubilibo.whatsapp_companion.json"
+  "$native_dir/com.roubilibo.whatsapp_unread.json"
+  "$home_dir/.local/state/omarchy/whatsapp-companion.json"
+  "$home_dir/.local/state/omarchy/whatsapp-companion-debug.log"
+  "$home_dir/.local/state/omarchy/whatsapp-unread.json"
+  "$home_dir/.local/state/omarchy/whatsapp-unread-debug.log"
+)
+
+for path in "${remove_dirs[@]}" "${remove_files[@]}"; do
+  assert_managed_path "$path"
+done
+
 remove_shell_entry "$home_dir/.config/omarchy/shell.json"
 remove_block "$home_dir/.config/hypr/bindings.lua" \
   "-- BEGIN roubilibo.whatsapp-companion" "-- END roubilibo.whatsapp-companion"
@@ -129,42 +171,21 @@ remove_block "$home_dir/.config/hypr/bindings.lua" \
   "-- BEGIN roubilibo.whatsapp-webapp" "-- END roubilibo.whatsapp-webapp"
 remove_block "$home_dir/.config/hypr/windows.lua" \
   "-- BEGIN roubilibo.whatsapp-webapp" "-- END roubilibo.whatsapp-webapp"
-remove_matching_lines "$home_dir/.config/hypr/bindings.lua" \
-  'o.bind("SUPER + W", "Close window / stop Waydroid session", "~/.local/bin/waydroid-aware-close")'
-remove_matching_lines "$home_dir/.config/hypr/bindings.lua" \
-  'o.bind("SUPER + SHIFT + W", "Toggle WhatsApp", "~/.local/bin/toggle-whatsapp")'
-remove_matching_lines "$home_dir/.config/hypr/bindings.lua" \
-  'o.bind("SUPER + W", "Close window / stop Waydroid session", "~/.local/bin/whatsapp-companion-aware-close")'
-remove_matching_lines "$home_dir/.config/hypr/bindings.lua" \
-  'o.bind("SUPER + SHIFT + W", "Toggle WhatsApp", "~/.local/bin/whatsapp-companion-toggle")'
 remove_whatsapp_window_rule "$home_dir/.config/hypr/windows.lua"
 remove_load_extension "$flags_file" "$extension_dir"
 remove_load_extension "$flags_file" "$legacy_extension_dir"
 
 if [[ "$remove_cloe" == true ]]; then
+  assert_managed_path "$home_dir/.config/omarchy/chromium/extensions/cloe"
+  assert_managed_path "$native_dir/com.iltumio.cloe.json"
+  assert_managed_path "$home_dir/.local/bin/cloe-host"
   remove_load_extension "$flags_file" "$home_dir/.config/omarchy/chromium/extensions/cloe"
   rm -rf -- "$home_dir/.config/omarchy/chromium/extensions/cloe"
   rm -f -- "$home_dir/.config/chromium/NativeMessagingHosts/com.iltumio.cloe.json"
   rm -f -- "$home_dir/.local/bin/cloe-host"
 fi
 
-rm -rf -- "$plugin_dir" "$legacy_plugin_dir" "$extension_dir" "$legacy_extension_dir"
-rm -f -- \
-  "$home_dir/.local/bin/whatsapp-companion-unread-host" \
-  "$home_dir/.local/bin/whatsapp-companion-toggle" \
-  "$home_dir/.local/bin/whatsapp-companion-close" \
-  "$home_dir/.local/bin/whatsapp-companion-restart" \
-  "$home_dir/.local/bin/whatsapp-companion-aware-close" \
-  "$home_dir/.local/bin/whatsapp-unread-host" \
-  "$home_dir/.local/bin/toggle-whatsapp" \
-  "$home_dir/.local/bin/close-whatsapp" \
-  "$home_dir/.local/bin/restart-whatsapp" \
-  "$home_dir/.local/bin/waydroid-aware-close" \
-  "$native_dir/com.roubilibo.whatsapp_companion.json" \
-  "$native_dir/com.roubilibo.whatsapp_unread.json" \
-  "$home_dir/.local/state/omarchy/whatsapp-companion.json" \
-  "$home_dir/.local/state/omarchy/whatsapp-companion-debug.log" \
-  "$home_dir/.local/state/omarchy/whatsapp-unread.json" \
-  "$home_dir/.local/state/omarchy/whatsapp-unread-debug.log"
+rm -rf -- "${remove_dirs[@]}"
+rm -f -- "${remove_files[@]}"
 
 echo "WhatsApp Web integration removed. Restart the shell and Chromium if they are running."

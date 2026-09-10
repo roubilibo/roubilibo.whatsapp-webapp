@@ -46,27 +46,45 @@ after reviewing the script:
 This invokes `scripts/install-cloe.sh`; it does not create URL rules.
 Configure CLOE in
 `chrome://extensions` → CLOE → Extension options. For example, to route
-Threads links, add:
+links from a webapp to the default browser, add a matching URL rule such as:
 
 ```regex
-^https://(www\.)?threads\.com/
+^https://example\.com/
 ```
 
 The CLOE installer verifies the SHA-256 digests published by GitHub for the
 selected CLOE release before installing its extension and native host.
 
 The installer backs up edited user files before changing them. It installs the
-bar plugin, extension, native host, and scripts, then prints the small binding
-and bar-layout snippets that must be merged into the local Omarchy config.
+bar plugin, extension, native host, and scripts; it adds marked Hyprland
+snippets when they are missing and places the widget in the right bar section.
 
-After merging the snippets:
+Then apply the Hyprland and shell configuration:
 
 ```bash
 hyprctl reload
 omarchy-shell shell rescanPlugins
 ```
 
-Restart the WhatsApp Web app once so Chromium loads the extension.
+### Reload the Chromium extension after an update
+
+After updating this integration, Chromium can retain an older service worker.
+Open `chrome://extensions`, enable Developer mode if needed, find **Local
+WhatsApp Unread Bridge**, and click Reload. Then restart the WhatsApp Web app.
+This ensures the unread bridge uses the newly installed code.
+
+## Local checks
+
+Before publishing or updating, run:
+
+```bash
+./scripts/check.sh
+```
+
+This validates shell and JSON syntax, Omarchy's plugin manifest, the minimal
+extension permission set, and an uninstall simulation in a temporary home
+directory. The simulation confirms unrelated Omarchy plugins and Chromium
+extension entries remain intact.
 
 ## Behavior
 

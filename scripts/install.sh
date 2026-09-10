@@ -8,6 +8,31 @@ plugin_id='roubilibo.whatsapp-companion'
 plugin_dir="$home_dir/.config/omarchy/plugins/$plugin_id"
 with_cloe=false
 
+assert_safe_home() {
+  [[ "$home_dir" == /* && "$home_dir" != / ]] || {
+    echo "Refusing to use unsafe HOME: $home_dir" >&2
+    exit 1
+  }
+}
+
+assert_managed_path() {
+  local path=$1
+  case "$path" in
+    "$home_dir/.config/omarchy/plugins/"*|\
+    "$home_dir/.config/omarchy/chromium/extensions/"*|\
+    "$home_dir/.config/chromium/NativeMessagingHosts/"*|\
+    "$home_dir/.local/bin/"*|\
+    "$home_dir/.local/state/omarchy/"*) ;;
+    *)
+      echo "Refusing unmanaged path: $path" >&2
+      exit 1
+      ;;
+  esac
+}
+
+assert_safe_home
+assert_managed_path "$plugin_dir"
+
 case "${1:-}" in
   "") ;;
   --with-cloe) with_cloe=true ;;
@@ -45,12 +70,19 @@ install -Dm644 "$repo_dir/plugin/Widget.qml" "$plugin_dir/plugin/Widget.qml"
 install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$plugin_dir/plugin/whatsapp.svg"
 
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-companion"
+assert_managed_path "$extension_dir"
+assert_managed_path "$home_dir/.local/bin/whatsapp-companion-unread-host"
+assert_managed_path "$home_dir/.local/bin/whatsapp-companion-toggle"
+assert_managed_path "$home_dir/.local/bin/whatsapp-companion-close"
+assert_managed_path "$home_dir/.local/bin/whatsapp-companion-restart"
+assert_managed_path "$home_dir/.local/bin/whatsapp-companion-aware-close"
 install -Dm644 "$repo_dir/extension/manifest.json" "$extension_dir/manifest.json"
 install -Dm644 "$repo_dir/extension/background.js" "$extension_dir/background.js"
 install -Dm644 "$repo_dir/extension/content.js" "$extension_dir/content.js"
 
 install -Dm755 "$repo_dir/native-host/whatsapp-unread-host.py" "$home_dir/.local/bin/whatsapp-companion-unread-host"
 host_dir="$home_dir/.config/chromium/NativeMessagingHosts"
+assert_managed_path "$host_dir/com.roubilibo.whatsapp_companion.json"
 mkdir -p "$host_dir"
 extension_id=$(python3 - "$extension_dir/manifest.json" <<'PY'
 import base64, hashlib, json, sys
