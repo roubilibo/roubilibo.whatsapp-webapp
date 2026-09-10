@@ -14,6 +14,11 @@ Portable source for the local Omarchy WhatsApp integration:
 - `special:whatsapp` used only as the hidden storage workspace.
 - external webapp links are handled by the separate CLOE PWA-link extension
   and opened through the system default browser.
+## Demo
+
+
+https://github.com/user-attachments/assets/a2700fcc-2157-4d13-a0eb-e39df6f9411b
+
 
 ## Install
 
