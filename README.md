@@ -96,6 +96,10 @@ native host; it does not send chat names, message text, contacts, or account
 data. Link routing is handled separately by [CLOE](https://github.com/iltumio/cloe)
 using rules configured through its GUI.
 
+Shout-out to [iltumio](https://github.com/iltumio) for creating and maintaining
+[CLOE](https://github.com/iltumio/cloe), the external-link helper used by the
+optional Threads integration.
+
 ## Remove
 
 Remove the shell plugin with:
