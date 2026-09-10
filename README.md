@@ -22,31 +22,47 @@ https://github.com/user-attachments/assets/a2700fcc-2157-4d13-a0eb-e39df6f9411b
 
 ## Install
 
-From this directory:
-
-```bash
-./scripts/install.sh
-```
-
-For a normal Omarchy plugin installation, use the repository URL:
+For the bar widget only, install directly from the public repository:
 
 ```bash
 omarchy plugin add https://github.com/roubilibo/roubilibo.whatsapp-webapp.git --enable
 ```
 
-The marketplace installation only installs the shell plugin. The optional
-`scripts/install.sh` additionally installs the unread bridge, Chromium
-extension, Hyprland helper scripts, and CLOE. Review that script before using
-it; it changes files under `~/.config/` and `~/.local/bin/` and downloads the
-pinned CLOE release from its upstream GitHub repository.
+## Manual installation
 
-The installer does not install CLOE automatically. If you want external links
-from webapps to open in the system default browser, pass the explicit option
-after reviewing the script:
+Use this method to install the complete integration: the bar widget, unread
+bridge, Chromium extension, native host, and Hyprland helpers. It does not use
+the Omarchy marketplace.
+
+```bash
+git clone https://github.com/roubilibo/roubilibo.whatsapp-webapp.git
+cd roubilibo.whatsapp-webapp
+./scripts/check.sh
+./scripts/install.sh
+hyprctl reload
+omarchy-shell shell rescanPlugins
+```
+
+Then reload **Local WhatsApp Unread Bridge** in `chrome://extensions` and
+restart WhatsApp Web once.
+
+To also install CLOE for routing webapp links to the system default browser,
+use the explicit option:
 
 ```bash
 ./scripts/install.sh --with-cloe
 ```
+
+The marketplace installation only installs the shell plugin. Manual
+installation additionally installs the unread bridge, Chromium extension,
+Hyprland helper scripts, and optionally CLOE. Review the scripts before using
+them; they change files under `~/.config/` and `~/.local/bin/` and, with
+`--with-cloe`, download the pinned CLOE release from its upstream GitHub
+repository.
+
+The installer does not install CLOE automatically. If you want external links
+from webapps to open in the system default browser, pass the explicit option
+after reviewing the script:
 
 This invokes `scripts/install-cloe.sh`; it does not create URL rules.
 Configure CLOE in
