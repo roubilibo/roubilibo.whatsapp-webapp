@@ -49,6 +49,32 @@ remove_block() {
   rm -f -- "$temp"
 }
 
+remove_matching_lines() {
+  local file=$1 pattern=$2 temp
+  [[ -f "$file" ]] || return 0
+  grep -Fq -- "$pattern" "$file" || return 0
+  backup_file "$file"
+  temp=$(mktemp)
+  awk -v pattern="$pattern" 'index($0, pattern) == 0 { print }' "$file" > "$temp"
+  install -m "$(stat -c '%a' "$file")" "$temp" "$file"
+  rm -f -- "$temp"
+}
+
+remove_whatsapp_window_rule() {
+  local file=$1 temp
+  [[ -f "$file" ]] || return 0
+  grep -Fq -- '-- Keep WhatsApp visibly transparent when unfocused.' "$file" || return 0
+  backup_file "$file"
+  temp=$(mktemp)
+  awk '
+    /-- Keep WhatsApp visibly transparent when unfocused\./ { removing = 1; next }
+    removing && /^\}\)$/ { removing = 0; next }
+    !removing { print }
+  ' "$file" > "$temp"
+  install -m "$(stat -c '%a' "$file")" "$temp" "$file"
+  rm -f -- "$temp"
+}
+
 remove_load_extension() {
   local file=$1 extension_dir=$2 temp
   [[ -f "$file" ]] || return 0
@@ -103,6 +129,15 @@ remove_block "$home_dir/.config/hypr/bindings.lua" \
   "-- BEGIN roubilibo.whatsapp-webapp" "-- END roubilibo.whatsapp-webapp"
 remove_block "$home_dir/.config/hypr/windows.lua" \
   "-- BEGIN roubilibo.whatsapp-webapp" "-- END roubilibo.whatsapp-webapp"
+remove_matching_lines "$home_dir/.config/hypr/bindings.lua" \
+  'o.bind("SUPER + W", "Close window / stop Waydroid session", "~/.local/bin/waydroid-aware-close")'
+remove_matching_lines "$home_dir/.config/hypr/bindings.lua" \
+  'o.bind("SUPER + SHIFT + W", "Toggle WhatsApp", "~/.local/bin/toggle-whatsapp")'
+remove_matching_lines "$home_dir/.config/hypr/bindings.lua" \
+  'o.bind("SUPER + W", "Close window / stop Waydroid session", "~/.local/bin/whatsapp-companion-aware-close")'
+remove_matching_lines "$home_dir/.config/hypr/bindings.lua" \
+  'o.bind("SUPER + SHIFT + W", "Toggle WhatsApp", "~/.local/bin/whatsapp-companion-toggle")'
+remove_whatsapp_window_rule "$home_dir/.config/hypr/windows.lua"
 remove_load_extension "$flags_file" "$extension_dir"
 remove_load_extension "$flags_file" "$legacy_extension_dir"
 
