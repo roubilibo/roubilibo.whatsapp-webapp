@@ -97,6 +97,7 @@ BarWidget {
     color: root.whatsappRunning ? "#25D366" : Color.foreground
     font.family: "Font Awesome 7 Brands"
     font.pixelSize: 13
+    textFormat: Text.PlainText
     renderType: Text.NativeRendering
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
@@ -115,6 +116,7 @@ BarWidget {
       id: badgeText
       anchors.centerIn: parent
       text: root.unreadCount > 99 ? "99+" : String(root.unreadCount)
+      textFormat: Text.PlainText
       color: "white"
       font.pixelSize: 8
       font.bold: true
@@ -152,6 +154,7 @@ BarWidget {
       Text {
         width: parent.width
         text: "WhatsApp Web"
+        textFormat: Text.PlainText
         color: Color.popups.text
         font.family: Style.font.menuFamily
         font.pixelSize: Style.font.subtitle
@@ -175,6 +178,7 @@ BarWidget {
           anchors.leftMargin: Style.spacing.controlPaddingX
           anchors.verticalCenter: parent.verticalCenter
           text: "󰆴"
+          textFormat: Text.PlainText
           color: closeMouse.containsMouse ? Color.menu.selectedText : Color.popups.text
           font.family: Style.font.menuFamily
           font.pixelSize: Style.font.body
@@ -185,6 +189,7 @@ BarWidget {
           anchors.leftMargin: Style.spacing.controlPaddingX + Style.space(24)
           anchors.verticalCenter: parent.verticalCenter
           text: "Close WhatsApp"
+          textFormat: Text.PlainText
           color: closeMouse.containsMouse ? Color.menu.selectedText : Color.popups.text
           font.family: Style.font.menuFamily
           font.pixelSize: Style.font.body
@@ -209,6 +214,7 @@ BarWidget {
           anchors.leftMargin: Style.spacing.controlPaddingX
           anchors.verticalCenter: parent.verticalCenter
           text: "󰑐"
+          textFormat: Text.PlainText
           color: restartMouse.containsMouse ? Color.menu.selectedText : Color.popups.text
           font.family: Style.font.menuFamily
           font.pixelSize: Style.font.body
@@ -219,6 +225,7 @@ BarWidget {
           anchors.leftMargin: Style.spacing.controlPaddingX + Style.space(24)
           anchors.verticalCenter: parent.verticalCenter
           text: "Restart WhatsApp"
+          textFormat: Text.PlainText
           color: restartMouse.containsMouse ? Color.menu.selectedText : Color.popups.text
           font.family: Style.font.menuFamily
           font.pixelSize: Style.font.body

@@ -132,8 +132,7 @@ Right-clicking the bar icon opens a small menu with:
 `plugin/` is the Omarchy bar plugin. `extension/` is loaded into the
 Chromium webapp through `--load-extension`. `native-host/` contains the
 Native Messaging helper and manifest template. `hypr/` contains the scripts
-and configuration snippets. `PROMPT.md` contains a reusable implementation
-prompt for another machine.
+and configuration snippets.
 
 The WhatsApp unread extension only sends a numeric unread value to its local
 native host; it does not send chat names, message text, contacts, or account
