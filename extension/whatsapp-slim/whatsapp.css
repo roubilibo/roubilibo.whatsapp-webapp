@@ -83,6 +83,34 @@
     border-left: none !important;
   }
 
+  /* Attachment preview: WhatsApp keeps a 40% drawer-left beside the editor.
+   * In compact mode that steals part of the conversation column, leaving a
+   * strip of the old chat visible.  Keep the 280px chatlist, then let the
+   * preview drawer consume the complete remaining #main width. */
+  [data-testid="drawer-left"]:has(
+    + [data-testid="drawer-middle"] [data-testid="media-editor-canvas"],
+    + [data-testid="drawer-middle"] [data-testid="media-editor-copy-button"],
+    + [data-testid="drawer-middle"] [data-testid="media-doc"],
+    + [data-testid="drawer-middle"] [data-testid="media-caption-input-container"]
+  ) {
+    flex: 0 0 280px !important;
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+  }
+
+  [data-testid="drawer-middle"]:has(
+    [data-testid="media-editor-canvas"],
+    [data-testid="media-editor-copy-button"],
+    [data-testid="media-doc"],
+    [data-testid="media-caption-input-container"]
+  ) {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
   /* Let the app shrink below WhatsApp's default minimum width */
   #app,
   #app .two {
