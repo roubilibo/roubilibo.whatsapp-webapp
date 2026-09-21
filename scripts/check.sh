@@ -16,11 +16,11 @@ done
 
 bash -n "$repo_dir"/scripts/*.sh "$repo_dir"/hypr/*
 jq empty "$repo_dir/manifest.json" \
-  "$repo_dir/extension/chrome-extension.json" \
+  "$repo_dir/extension/local-whatsapp-bridge/manifest.json" \
   "$repo_dir/extension/whatsapp-slim/manifest.json" \
   "$repo_dir/native-host/com.roubilibo.whatsapp_unread.json.in"
 jq -e '.permissions == ["nativeMessaging"]' \
-  "$repo_dir/extension/chrome-extension.json" >/dev/null || fail "extension permissions expanded"
+  "$repo_dir/extension/local-whatsapp-bridge/manifest.json" >/dev/null || fail "extension permissions expanded"
 jq -e '.name == "WhatsApp Slim" and .content_scripts[0].css == ["whatsapp.css"] and .content_scripts[0].js == ["system-theme.js"]' \
   "$repo_dir/extension/whatsapp-slim/manifest.json" >/dev/null || \
   fail "bundled WhatsApp Slim manifest is invalid"

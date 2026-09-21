@@ -131,9 +131,10 @@ Right-clicking the bar icon opens a small menu with:
 
 ## Files
 
-`plugin/` is the Omarchy bar plugin. `extension/` contains the unread bridge,
-and `extension/whatsapp-slim/` contains the separate compact-layout extension;
-both are loaded into the Chromium webapp through `--load-extension`.
+`plugin/` is the Omarchy bar plugin. `extension/local-whatsapp-bridge/` contains
+the unread bridge, and `extension/whatsapp-slim/` contains the separate
+compact-layout extension; both are loaded into the Chromium webapp through
+`--load-extension`.
 `native-host/` contains the Native Messaging helper and manifest template.
 `hypr/` contains the scripts and configuration snippets.
 
