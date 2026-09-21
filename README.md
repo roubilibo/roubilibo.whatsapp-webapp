@@ -8,6 +8,7 @@ Portable source for the local Omarchy WhatsApp integration:
 - bar widget with a theme-colored WhatsApp icon;
 - badge showing WhatsApp Web's global unread-list number;
 - Chromium MV3 extension using Native Messaging;
+- bundled WhatsApp Slim extension, kept separate from the unread bridge;
 - `Super+Shift+W` toggle behavior;
 - `Super+W` hide/close behavior;
 - right-click menu with Close WhatsApp and Restart WhatsApp actions;
@@ -77,8 +78,9 @@ The CLOE installer verifies the SHA-256 digests published by GitHub for the
 selected CLOE release before installing its extension and native host.
 
 The installer backs up edited user files before changing them. It installs the
-bar plugin, extension, native host, and scripts; it adds marked Hyprland
-snippets when they are missing and places the widget in the right bar section.
+bar plugin, both Chromium extensions, the native host, and scripts; it adds
+marked Hyprland snippets when they are missing and places the widget in the
+right bar section.
 
 Then apply the Hyprland and shell configuration:
 
@@ -129,10 +131,11 @@ Right-clicking the bar icon opens a small menu with:
 
 ## Files
 
-`plugin/` is the Omarchy bar plugin. `extension/` is loaded into the
-Chromium webapp through `--load-extension`. `native-host/` contains the
-Native Messaging helper and manifest template. `hypr/` contains the scripts
-and configuration snippets.
+`plugin/` is the Omarchy bar plugin. `extension/` contains the unread bridge,
+and `extension/whatsapp-slim/` contains the separate compact-layout extension;
+both are loaded into the Chromium webapp through `--load-extension`.
+`native-host/` contains the Native Messaging helper and manifest template.
+`hypr/` contains the scripts and configuration snippets.
 
 The WhatsApp unread extension only sends a numeric unread value to its local
 native host; it does not send chat names, message text, contacts, or account

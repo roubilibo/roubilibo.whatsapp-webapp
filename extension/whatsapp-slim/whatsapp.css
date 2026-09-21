@@ -1,0 +1,75 @@
+/* Collapse WhatsApp Web's chat list to a Signal-style avatar rail when the
+ * window is too narrow to show both the full list and the conversation.
+ * Leans on WhatsApp's stable structural ids (#side, #main, #pane-side) and
+ * data-testid hooks rather than its obfuscated, frequently-churning class
+ * names. */
+
+@media (max-width: 1100px) {
+  /* Keep a compact chat list, but leave enough room for contact names. */
+  div:has(> div#side) {
+    flex: 0 0 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+  }
+
+  /* Chat-list title bar, search, filter chips, and banner don't fit.
+   * Scoped to the column wrapper: the left icon nav rail confusingly
+   * shares the same chatlist-header testid and must survive. */
+  div:has(> div#side) > header,
+  #side > div:first-child,
+  #side [role="tablist"],
+  #side span[data-testid="chat-butterbar"] {
+    display: none !important;
+  }
+
+  /* The rail doesn't need a visible scrollbar, and horizontal overflow
+   * from the collapsed rows must not wiggle */
+  #pane-side {
+    overflow-x: hidden !important;
+    scrollbar-width: none !important;
+  }
+
+  /* Keep the contact-name column visible.  The list remains compact because
+   * the surrounding header and filters are still hidden above. */
+  [data-testid="cell-frame-container"] {
+    position: relative !important;
+  }
+
+  [data-testid="cell-frame-container"] > div:not(:first-child) {
+    visibility: visible !important;
+    width: auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Let the title use the available compact-list width. */
+  [data-testid="cell-frame-title"],
+  [data-testid="cell-frame-title"] * {
+    visibility: visible !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Float the unread badge over the row's right edge. */
+  [data-testid="cell-frame-container"] span[aria-label*="unread"] {
+    visibility: visible !important;
+    position: absolute !important;
+    top: 2px !important;
+    right: 6px !important;
+    left: auto !important;
+  }
+
+  /* The empty drawer overlay keeps the stock chat-list width, which
+   * strands its divider border in the middle of the conversation */
+  [data-testid="drawer-middle"] {
+    border-left: none !important;
+  }
+
+  /* Let the app shrink below WhatsApp's default minimum width */
+  #app,
+  #app .two {
+    min-width: 0 !important;
+  }
+}

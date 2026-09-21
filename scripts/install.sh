@@ -70,7 +70,9 @@ install -Dm644 "$repo_dir/plugin/Widget.qml" "$plugin_dir/plugin/Widget.qml"
 install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$plugin_dir/plugin/whatsapp.svg"
 
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-companion"
+slim_extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-slim"
 assert_managed_path "$extension_dir"
+assert_managed_path "$slim_extension_dir"
 assert_managed_path "$home_dir/.local/bin/whatsapp-companion-unread-host"
 assert_managed_path "$home_dir/.local/bin/whatsapp-companion-toggle"
 assert_managed_path "$home_dir/.local/bin/whatsapp-companion-close"
@@ -79,6 +81,9 @@ assert_managed_path "$home_dir/.local/bin/whatsapp-companion-aware-close"
 install -Dm644 "$repo_dir/extension/chrome-extension.json" "$extension_dir/manifest.json"
 install -Dm644 "$repo_dir/extension/background.js" "$extension_dir/background.js"
 install -Dm644 "$repo_dir/extension/content.js" "$extension_dir/content.js"
+install -Dm644 "$repo_dir/extension/whatsapp-slim/manifest.json" "$slim_extension_dir/manifest.json"
+install -Dm644 "$repo_dir/extension/whatsapp-slim/system-theme.js" "$slim_extension_dir/system-theme.js"
+install -Dm644 "$repo_dir/extension/whatsapp-slim/whatsapp.css" "$slim_extension_dir/whatsapp.css"
 
 install -Dm755 "$repo_dir/native-host/whatsapp-unread-host.py" "$home_dir/.local/bin/whatsapp-companion-unread-host"
 host_dir="$home_dir/.config/chromium/NativeMessagingHosts"
@@ -129,12 +134,53 @@ fi
 flags_file="$home_dir/.config/chromium-flags.conf"
 mkdir -p "$(dirname -- "$flags_file")"
 touch "$flags_file"
+
+remove_load_extension_entry() {
+  local file=$1 extension_path=$2 temp
+  [[ -f "$file" ]] || return 0
+  grep -Fq -- "$extension_path" "$file" || return 0
+  backup_file "$file"
+  temp=$(mktemp)
+  awk -v path="$extension_path" '
+    index($0, "--load-extension=") == 1 {
+      prefix = "--load-extension="
+      list = substr($0, length(prefix) + 1)
+      count = split(list, entries, ",")
+      output = ""
+      for (i = 1; i <= count; i++) {
+        if (entries[i] == path) continue
+        if (output != "") output = output ","
+        output = output entries[i]
+      }
+      if (output != "") print prefix output
+      next
+    }
+    { print }
+  ' "$file" > "$temp"
+  install -m "$(stat -c '%a' "$file")" "$temp" "$file"
+  rm -f -- "$temp"
+}
+
+# Use the repo's edited Slim extension instead of the stock copy when it is
+# present in the user's Chromium flags.
+remove_load_extension_entry \
+  "$flags_file" \
+  "/usr/share/omarchy/default/chromium/extensions/whatsapp-slim"
+
 if ! grep -Fq "$extension_dir" "$flags_file"; then
   backup_file "$flags_file"
   if grep -q '^--load-extension=' "$flags_file"; then
     sed -i "s|^--load-extension=|--load-extension=$extension_dir,|" "$flags_file"
   else
     printf '%s\n' "--load-extension=$extension_dir" >> "$flags_file"
+  fi
+fi
+if ! grep -Fq "$slim_extension_dir" "$flags_file"; then
+  backup_file "$flags_file"
+  if grep -q '^--load-extension=' "$flags_file"; then
+    sed -i "s|^--load-extension=|--load-extension=$slim_extension_dir,|" "$flags_file"
+  else
+    printf '%s\n' "--load-extension=$slim_extension_dir" >> "$flags_file"
   fi
 fi
 

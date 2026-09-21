@@ -106,6 +106,27 @@ remove_load_extension() {
   rm -f -- "$temp"
 }
 
+restore_load_extension() {
+  local file=$1 extension_path=$2 temp
+  [[ -f "$file" ]] || return 0
+  grep -Fq -- "$extension_path" "$file" && return 0
+  backup_file "$file"
+  if grep -q '^--load-extension=' "$file"; then
+    temp=$(mktemp)
+    awk -v path="$extension_path" '
+      index($0, "--load-extension=") == 1 {
+        print $0 "," path
+        next
+      }
+      { print }
+    ' "$file" > "$temp"
+    install -m "$(stat -c '%a' "$file")" "$temp" "$file"
+    rm -f -- "$temp"
+  else
+    printf '%s\n' "--load-extension=$extension_path" >> "$file"
+  fi
+}
+
 remove_shell_entry() {
   local file=$1 temp
   [[ -f "$file" ]] || return 0
@@ -129,6 +150,7 @@ remove_shell_entry() {
 plugin_dir="$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-companion"
 legacy_plugin_dir="$home_dir/.config/omarchy/plugins/roubilibo.whatsapp-webapp"
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-companion"
+slim_extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-slim"
 legacy_extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-unread"
 flags_file="$home_dir/.config/chromium-flags.conf"
 native_dir="$home_dir/.config/chromium/NativeMessagingHosts"
@@ -137,6 +159,7 @@ remove_dirs=(
   "$plugin_dir"
   "$legacy_plugin_dir"
   "$extension_dir"
+  "$slim_extension_dir"
   "$legacy_extension_dir"
 )
 remove_files=(
@@ -173,7 +196,9 @@ remove_block "$home_dir/.config/hypr/windows.lua" \
   "-- BEGIN roubilibo.whatsapp-webapp" "-- END roubilibo.whatsapp-webapp"
 remove_whatsapp_window_rule "$home_dir/.config/hypr/windows.lua"
 remove_load_extension "$flags_file" "$extension_dir"
+remove_load_extension "$flags_file" "$slim_extension_dir"
 remove_load_extension "$flags_file" "$legacy_extension_dir"
+restore_load_extension "$flags_file" "/usr/share/omarchy/default/chromium/extensions/whatsapp-slim"
 
 if [[ "$remove_cloe" == true ]]; then
   assert_managed_path "$home_dir/.config/omarchy/chromium/extensions/cloe"
