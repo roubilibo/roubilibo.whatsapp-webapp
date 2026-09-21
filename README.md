@@ -74,8 +74,9 @@ links from a webapp to the default browser, add a matching URL rule such as:
 ^https://example\.com/
 ```
 
-The CLOE installer verifies the SHA-256 digests published by GitHub for the
-selected CLOE release before installing its extension and native host.
+The CLOE installer uses the pinned `v0.1.0` release and repository-controlled
+SHA-256 digests for the extension and each supported Linux host architecture.
+It rejects unpinned `CLOE_VERSION` overrides before downloading anything.
 
 The installer backs up edited user files before changing them. It installs the
 bar plugin, both Chromium extensions, the native host, and scripts; it adds

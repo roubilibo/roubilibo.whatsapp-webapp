@@ -3,8 +3,6 @@ set -euo pipefail
 
 home_dir=${HOME:?HOME is required}
 version=${CLOE_VERSION:-v0.1.0}
-base_url="https://github.com/iltumio/cloe/releases/download/$version"
-api_url="https://api.github.com/repos/iltumio/cloe/releases/tags/$version"
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/cloe"
 native_dir="$home_dir/.config/chromium/NativeMessagingHosts"
 flags_file="$home_dir/.config/chromium-flags.conf"
@@ -35,30 +33,37 @@ assert_managed_path "$extension_dir"
 assert_managed_path "$native_dir/com.iltumio.cloe.json"
 assert_managed_path "$home_dir/.local/bin/cloe-host"
 
+case "$version" in
+  v0.1.0)
+    # These digests are repository-controlled pins for the reviewed release.
+    base_url="https://github.com/iltumio/cloe/releases/download/$version"
+    extension_sha256=7a0fd8f372bc46feb69a14f7a24246b620517e0ef7cff91444fea7cbb8a49143
+    case "$(uname -m)" in
+      x86_64|amd64)
+        host_asset=cloe-host-linux-x86_64
+        host_sha256=3ced48991fad67986f5aab2581802af0b546b60785d8b26b479129197da546e9
+        ;;
+      aarch64|arm64)
+        host_asset=cloe-host-linux-aarch64
+        host_sha256=fb5c4f656bf3ee9111345223f63f63ac0f7d7f9f378cc310327bf78ebef6eff5
+        ;;
+      *)
+        echo "Unsupported architecture: $(uname -m)" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "Unsupported CLOE version: $version (supported: v0.1.0)" >&2
+    exit 1
+    ;;
+esac
+
 download_dir=$(mktemp -d)
 trap 'rm -rf -- "$download_dir"' EXIT
 
-command -v jq >/dev/null 2>&1 || { echo "jq is required to verify CLOE release digests." >&2; exit 1; }
-command -v sha256sum >/dev/null 2>&1 || { echo "sha256sum is required to verify CLOE release digests." >&2; exit 1; }
-
-curl -fsSL -H 'Accept: application/vnd.github+json' "$api_url" \
-  -o "$download_dir/release.json"
-
-asset_digest() {
-  local asset=$1 digest
-  digest=$(jq -r --arg asset "$asset" \
-    '.assets[] | select(.name == $asset) | .digest // empty' \
-    "$download_dir/release.json")
-  [[ "$digest" == sha256:* ]] || {
-    echo "No SHA-256 digest published for CLOE asset: $asset" >&2
-    exit 1
-  }
-  printf '%s\n' "${digest#sha256:}"
-}
-
 download_verified() {
-  local asset=$1 destination=$2 expected actual
-  expected=$(asset_digest "$asset")
+  local asset=$1 destination=$2 expected=$3 actual
   curl -fsSL "$base_url/$asset" -o "$destination"
   actual=$(sha256sum "$destination" | awk '{print $1}')
   [[ "$actual" == "$expected" ]] || {
@@ -67,14 +72,8 @@ download_verified() {
   }
 }
 
-case "$(uname -m)" in
-  x86_64|amd64) host_asset="cloe-host-linux-x86_64" ;;
-  aarch64|arm64) host_asset="cloe-host-linux-aarch64" ;;
-  *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
-esac
-
-download_verified "cloe-extension.zip" "$download_dir/cloe-extension.zip"
-download_verified "$host_asset" "$download_dir/$host_asset"
+download_verified "cloe-extension.zip" "$download_dir/cloe-extension.zip" "$extension_sha256"
+download_verified "$host_asset" "$download_dir/$host_asset" "$host_sha256"
 
 mkdir -p "$extension_dir" "$native_dir" "$(dirname -- "$flags_file")"
 unzip -oq "$download_dir/cloe-extension.zip" -d "$extension_dir"

@@ -28,6 +28,15 @@ rg -F -- 'flex: 0 0 280px' "$repo_dir/extension/whatsapp-slim/whatsapp.css" >/de
   fail "bundled WhatsApp Slim is not set to 280px"
 rg -F -- 'border-left: none !important' "$repo_dir/extension/whatsapp-slim/whatsapp.css" >/dev/null || \
   fail "bundled WhatsApp Slim divider override is missing"
+rg -F -- 'extension_sha256=7a0fd8f372bc46feb69a14f7a24246b620517e0ef7cff91444fea7cbb8a49143' \
+  "$repo_dir/scripts/install-cloe.sh" >/dev/null || fail "CLOE extension digest is not pinned"
+rg -F -- 'host_sha256=3ced48991fad67986f5aab2581802af0b546b60785d8b26b479129197da546e9' \
+  "$repo_dir/scripts/install-cloe.sh" >/dev/null || fail "CLOE x86_64 digest is not pinned"
+rg -F -- 'host_sha256=fb5c4f656bf3ee9111345223f63f63ac0f7d7f9f378cc310327bf78ebef6eff5' \
+  "$repo_dir/scripts/install-cloe.sh" >/dev/null || fail "CLOE aarch64 digest is not pinned"
+if CLOE_VERSION=v9.9.9 HOME="$test_home" "$repo_dir/scripts/install-cloe.sh" >/dev/null 2>&1; then
+  fail "CLOE installer accepted an unpinned version"
+fi
 omarchy plugin validate "$repo_dir"
 
 install -d "$test_home/.config/omarchy/plugins/other.plugin"
