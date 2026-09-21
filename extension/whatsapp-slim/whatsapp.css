@@ -12,14 +12,30 @@
     max-width: 280px !important;
   }
 
-  /* Chat-list title bar, search, filter chips, and banner don't fit.
-   * Scoped to the column wrapper: the left icon nav rail confusingly
-   * shares the same chatlist-header testid and must survive. */
-  div:has(> div#side) > header,
-  #side > div:first-child,
-  #side [role="tablist"],
+  /* Keep the WhatsApp header visible inside the compact column. */
+  div:has(> div#side) > header {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* Keep the chat filters available; scroll them horizontally when needed. */
+  #side [role="tablist"] {
+    display: flex !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+
   #side span[data-testid="chat-butterbar"] {
     display: none !important;
+  }
+
+  /* The search field stays useful in the 280px chat-list column. */
+  #side input[placeholder*="Search" i],
+  #side input[aria-label*="Search" i] {
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 
   /* The rail doesn't need a visible scrollbar, and horizontal overflow
