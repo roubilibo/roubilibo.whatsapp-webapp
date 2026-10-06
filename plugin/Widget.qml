@@ -42,8 +42,10 @@ BarWidget {
       var foundWhatsapp = clients.some(function(client) {
         var isWhatsapp = client.class === "chrome-web.whatsapp.com__-Default" ||
           client.initialClass === "chrome-web.whatsapp.com__-Default"
-        var title = String(client.title || "") + " " + String(client.initialTitle || "")
-        return isWhatsapp || /whatsapp|web\.whatsapp\.com/i.test(title)
+        var titlePattern = /^\s*(?:web\.whatsapp\.com(?:_\/)?|whatsapp(?:\s+(?:web|call))?)\s*$/i
+        var titleMatches = titlePattern.test(String(client.title || "")) ||
+          titlePattern.test(String(client.initialTitle || ""))
+        return isWhatsapp || titleMatches
       })
       if (foundWhatsapp) {
         closeGraceTimer.stop()
