@@ -136,10 +136,7 @@ remove_legacy_binding_unbinds() {
 install -Dm644 "$repo_dir/manifest.json" "$plugin_dir/manifest.json"
 install -Dm644 "$repo_dir/plugin/Widget.qml" "$plugin_dir/plugin/Widget.qml"
 install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$plugin_dir/plugin/whatsapp.svg"
-install -Dm644 "$repo_dir/plugin/hypr/plugin.lua" "$plugin_dir/hypr/plugin.lua"
-if [[ -e "$plugin_dir/hypr/windows.lua" ]]; then
-  rm -f -- "$plugin_dir/hypr/windows.lua"
-fi
+install -Dm644 "$repo_dir/plugin/hypr/plugin.lua" "$plugin_dir/plugin/hypr/plugin.lua"
 
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-companion"
 slim_extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-slim"
@@ -147,10 +144,10 @@ bridge_source_dir="$repo_dir/extension/local-whatsapp-bridge"
 assert_managed_path "$extension_dir"
 assert_managed_path "$slim_extension_dir"
 assert_managed_path "$home_dir/.local/bin/whatsapp-companion-unread-host"
-assert_managed_path "$plugin_dir/hypr/toggle-whatsapp"
-assert_managed_path "$plugin_dir/hypr/close-whatsapp"
-assert_managed_path "$plugin_dir/hypr/restart-whatsapp"
-assert_managed_path "$plugin_dir/hypr/waydroid-aware-close"
+assert_managed_path "$plugin_dir/plugin/hypr/toggle-whatsapp"
+assert_managed_path "$plugin_dir/plugin/hypr/close-whatsapp"
+assert_managed_path "$plugin_dir/plugin/hypr/restart-whatsapp"
+assert_managed_path "$plugin_dir/plugin/hypr/waydroid-aware-close"
 install -Dm644 "$bridge_source_dir/manifest.json" "$extension_dir/manifest.json"
 install -Dm644 "$bridge_source_dir/background.js" "$extension_dir/background.js"
 install -Dm644 "$bridge_source_dir/content.js" "$extension_dir/content.js"
@@ -180,7 +177,7 @@ sed -e "s|__HOME__|$home_dir|g" -e "s|__EXTENSION_ID__|$extension_id|g" \
 chmod 644 "$host_dir/com.roubilibo.whatsapp_companion.json"
 
 for helper in toggle-whatsapp close-whatsapp restart-whatsapp waydroid-aware-close; do
-  install -Dm755 "$repo_dir/plugin/hypr/$helper" "$plugin_dir/hypr/$helper"
+  install -Dm755 "$repo_dir/plugin/hypr/$helper" "$plugin_dir/plugin/hypr/$helper"
 done
 
 # Earlier versions installed these helpers in ~/.local/bin. Back them up and

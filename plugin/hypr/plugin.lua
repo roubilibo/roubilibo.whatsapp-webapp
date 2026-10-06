@@ -5,7 +5,7 @@ end
 _G.__roubilibo_whatsapp_companion_loaded = true
 
 local home = os.getenv("HOME") or ""
-local hypr_dir = home .. "/.config/omarchy/plugins/roubilibo.whatsapp-companion/hypr"
+local hypr_dir = home .. "/.config/omarchy/plugins/roubilibo.whatsapp-companion/plugin/hypr"
 
 hl.unbind("SUPER + W")
 o.bind("SUPER + W", "Close window / stop Waydroid session",

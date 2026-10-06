@@ -9,5 +9,8 @@ function sendUnread(unread) {
 }
 
 chrome.runtime.onMessage.addListener((message) => {
-  if (message && message.type === "whatsapp-unread") sendUnread(message.unread);
+  if (message && message.type === "whatsapp-unread"
+    && Number.isFinite(message.unread)) {
+    sendUnread(message.unread);
+  }
 });

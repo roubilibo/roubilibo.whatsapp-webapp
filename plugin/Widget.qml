@@ -11,7 +11,7 @@ BarWidget {
   readonly property string unreadState:
     Quickshell.env("HOME") + "/.local/state/omarchy/whatsapp-companion.json"
   readonly property string hyprDir:
-    Quickshell.env("HOME") + "/.config/omarchy/plugins/roubilibo.whatsapp-companion/hypr"
+    Quickshell.env("HOME") + "/.config/omarchy/plugins/roubilibo.whatsapp-companion/plugin/hypr"
   readonly property string toggleScript: root.hyprDir + "/toggle-whatsapp"
   readonly property string closeScript: root.hyprDir + "/close-whatsapp"
   readonly property string restartScript: root.hyprDir + "/restart-whatsapp"
@@ -39,13 +39,20 @@ BarWidget {
   function parseClients(raw) {
     try {
       var clients = JSON.parse(String(raw || "[]"))
-      root.whatsappRunning = clients.some(function(client) {
+      var foundWhatsapp = clients.some(function(client) {
         var isWhatsapp = client.class === "chrome-web.whatsapp.com__-Default" ||
           client.initialClass === "chrome-web.whatsapp.com__-Default"
-        return isWhatsapp
+        var title = String(client.title || "") + " " + String(client.initialTitle || "")
+        return isWhatsapp || /whatsapp|web\.whatsapp\.com/i.test(title)
       })
+      if (foundWhatsapp) {
+        closeGraceTimer.stop()
+        root.whatsappRunning = true
+      } else if (root.whatsappRunning && !closeGraceTimer.running) {
+        closeGraceTimer.start()
+      }
     } catch (e) {
-      root.whatsappRunning = false
+      // A failed client query is not proof that WhatsApp has closed.
     }
   }
 
@@ -57,6 +64,13 @@ BarWidget {
     repeat: true
     triggeredOnStart: true
     onTriggered: root.refresh()
+  }
+
+  Timer {
+    id: closeGraceTimer
+    interval: 5000
+    repeat: false
+    onTriggered: root.whatsappRunning = false
   }
 
   Process {

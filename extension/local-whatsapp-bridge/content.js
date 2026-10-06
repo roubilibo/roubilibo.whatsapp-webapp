@@ -50,11 +50,20 @@
       .map(numericValue).filter((value) => value !== null);
     if (standaloneNumbers.length) return Math.max(...standaloneNumbers);
 
-    return globalBadges.length ? 1 : 0;
+    // During a call WhatsApp can replace the chat list with the call screen.
+    // No visible unread marker in that view means "unknown", not zero; keep
+    // the last count until the chat list returns and can report a real value.
+    if (/whatsapp\s+call/i.test(document.title)) return null;
+
+    // A loaded chat sidebar with no unread markers is a confirmed zero. If the
+    // sidebar is absent (loading, call, or another transient view), don't
+    // overwrite the last known unread count with a guessed zero.
+    return document.querySelector("#side") ? 0 : null;
   }
 
   function publish() {
     const unread = unreadCount();
+    if (unread === null) return;
     if (unread === lastUnread) return;
     lastUnread = unread;
     chrome.runtime.sendMessage({ type: "whatsapp-unread", unread });
