@@ -132,6 +132,9 @@ extension entries remain intact.
 - restores it when invoked while WhatsApp is in the special workspace;
 - retains the existing Waydroid-stop and normal-close behavior for other windows.
 
+WhatsApp and its call windows open tiled. Their size follows the active
+workspace layout.
+
 Right-clicking the bar icon opens a small menu with:
 
 - `Close WhatsApp`, which closes all WhatsApp Web windows;

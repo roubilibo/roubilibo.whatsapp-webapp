@@ -1,4 +1,4 @@
--- Managed loader added to ~/.config/hypr/bindings.lua by install.sh.
+-- Managed loader template; add this to ~/.config/hypr/bindings.lua manually.
 do
   local home = os.getenv("HOME") or ""
   local plugin = home
