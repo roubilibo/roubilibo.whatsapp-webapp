@@ -23,7 +23,7 @@ https://github.com/user-attachments/assets/a2700fcc-2157-4d13-a0eb-e39df6f9411b
 
 ## Install
 
-For the bar widget only, install directly from the public repository:
+Install the Omarchy bar widget from the public repository:
 
 ```bash
 omarchy plugin add https://github.com/roubilibo/roubilibo.whatsapp-webapp.git --enable
@@ -31,21 +31,39 @@ omarchy plugin add https://github.com/roubilibo/roubilibo.whatsapp-webapp.git --
 
 ## Manual installation
 
-Use this method to install the complete integration: the bar widget, unread
-bridge, Chromium extension, native host, and Hyprland helpers. It does not use
-the Omarchy marketplace.
+The script installs only the Chromium extensions and the native host required
+by the unread bridge. Install the bar widget separately with the Omarchy command
+above. To install the extensions manually:
 
 ```bash
 git clone https://github.com/roubilibo/roubilibo.whatsapp-webapp.git
 cd roubilibo.whatsapp-webapp
 ./scripts/check.sh
 ./scripts/install.sh
-hyprctl reload
-omarchy-shell shell rescanPlugins
 ```
 
-Then reload **Local WhatsApp Unread Bridge** in `chrome://extensions` and
-restart WhatsApp Web once.
+After installing the bar widget and extensions, add this loader to
+`~/.config/hypr/bindings.lua` to enable the WhatsApp keybindings and window
+behavior:
+
+```lua
+-- BEGIN roubilibo.whatsapp-companion
+-- Add this managed loader to ~/.config/hypr/bindings.lua.
+do
+  local home = os.getenv("HOME") or ""
+  local plugin = home
+    .. "/.config/omarchy/plugins/roubilibo.whatsapp-companion/plugin/hypr/plugin.lua"
+  local file = io.open(plugin, "r")
+  if file then
+    file:close()
+    pcall(dofile, plugin)
+  end
+end
+-- END roubilibo.whatsapp-companion
+```
+
+Then run `hyprctl reload`, reload **Local WhatsApp Unread Bridge** in
+`chrome://extensions`, and restart WhatsApp Web once.
 
 To also install CLOE for routing webapp links to the system default browser,
 use the explicit option:
@@ -54,12 +72,10 @@ use the explicit option:
 ./scripts/install.sh --with-cloe
 ```
 
-The marketplace installation only installs the shell plugin. Manual
-installation additionally installs the unread bridge, Chromium extension,
-Hyprland helper scripts, and optionally CLOE. Review the scripts before using
-them; they change files under `~/.config/` and `~/.local/bin/` and, with
-`--with-cloe`, download the pinned CLOE release from its upstream GitHub
-repository.
+`scripts/install.sh` changes Chromium extension settings under `~/.config/`
+and installs the unread native host under `~/.local/bin/`. It does not install
+the bar widget or edit Hyprland configuration. With `--with-cloe`, it also
+downloads the pinned CLOE release from its upstream GitHub repository.
 
 The installer does not install CLOE automatically. If you want external links
 from webapps to open in the system default browser, pass the explicit option
@@ -78,20 +94,8 @@ The CLOE installer uses the pinned `v0.1.0` release and repository-controlled
 SHA-256 digests for the extension and each supported Linux host architecture.
 It rejects unpinned `CLOE_VERSION` overrides before downloading anything.
 
-The installer backs up edited user files before changing them. It installs the
-bar plugin, both Chromium extensions, the native host, and the Hyprland helpers
-inside the plugin directory. It replaces the old inline Hyprland snippets with
-one managed loader in `bindings.lua`; the window rules and bindings then live
-beside the widget. Older `~/.local/bin/whatsapp-companion-*` helpers are backed
-up and removed during the update. The installer also places the widget in the
-right bar section.
-
-Then apply the Hyprland and shell configuration:
-
-```bash
-hyprctl reload
-omarchy-shell shell rescanPlugins
-```
+The installer backs up the Chromium flags file before changing it. The loader
+above points to the plugin files installed by Omarchy.
 
 ### Reload the Chromium extension after an update
 
@@ -137,9 +141,8 @@ Right-clicking the bar icon opens a small menu with:
 
 `plugin/` contains the Omarchy bar widget and its `hypr/` integration: one Lua
 module owns the WhatsApp bindings and window behavior, alongside the helper
-commands. The installer
-copies that directory into the Omarchy plugin so the bar and Hyprland code
-share one home. `extension/local-whatsapp-bridge/` contains the unread bridge, and
+commands. Install the plugin through Omarchy so these files are available at
+the path used by the loader. `extension/local-whatsapp-bridge/` contains the unread bridge, and
 `extension/whatsapp-slim/` contains the separate compact-layout extension;
 both are loaded into the Chromium webapp through `--load-extension`.
 `native-host/` contains the Native Messaging helper and manifest template; the
@@ -163,7 +166,8 @@ Remove the shell plugin with:
 omarchy plugin remove roubilibo.whatsapp-companion --yes
 ```
 
-To remove the complete integration installed by `scripts/install.sh`, run:
+To remove the complete integration, including the Omarchy bar plugin installed
+separately and the marked Hyprland loader, run:
 
 ```bash
 ./scripts/uninstall.sh
@@ -177,6 +181,8 @@ removed:
 ./scripts/uninstall.sh --with-cloe --yes
 ```
 
-The uninstall script removes the separately installed bridge, helper scripts,
-native-host manifest, Chromium extension entry, and marked WhatsApp snippets.
-It creates timestamped backups before editing existing user configuration.
+The uninstall script removes the Omarchy plugin, Chromium extensions, unread
+bridge native host, native-host manifest, Chromium extension entries, and
+marked WhatsApp snippets such as the loader added manually to `bindings.lua`.
+It also removes CLOE only when `--with-cloe` is supplied. The script creates
+timestamped backups before editing existing user configuration.

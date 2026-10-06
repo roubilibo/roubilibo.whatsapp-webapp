@@ -4,8 +4,6 @@ set -euo pipefail
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 home_dir=${HOME:?HOME is required}
 stamp=$(date +%Y%m%d-%H%M%S)
-plugin_id='roubilibo.whatsapp-companion'
-plugin_dir="$home_dir/.config/omarchy/plugins/$plugin_id"
 with_cloe=false
 
 assert_safe_home() {
@@ -31,7 +29,13 @@ assert_managed_path() {
 }
 
 assert_safe_home
-assert_managed_path "$plugin_dir"
+
+backup_file() {
+  local file=$1
+  if [[ -e "$file" && ! -e "$file.bak.$stamp" ]]; then
+    cp -a -- "$file" "$file.bak.$stamp"
+  fi
+}
 
 case "${1:-}" in
   "") ;;
@@ -42,101 +46,11 @@ case "${1:-}" in
     ;;
 esac
 
-if [[ -f "$plugin_dir/manifest.json" ]]; then
-  install_mode="update"
-else
-  install_mode="install"
-fi
-
-if [[ "$install_mode" == "update" ]]; then
-  echo "Existing WhatsApp plugin detected; updating it."
-else
-  echo "Installing WhatsApp integration."
-fi
-
 if [[ "$with_cloe" == true ]]; then
   "$repo_dir/scripts/install-cloe.sh"
 else
   echo "CLOE installation skipped. Use --with-cloe to install it explicitly."
 fi
-
-backup_file() {
-  local file=$1
-  if [[ -e "$file" && ! -e "$file.bak.$stamp" ]]; then
-    cp -a -- "$file" "$file.bak.$stamp"
-  fi
-}
-
-remove_managed_block() {
-  local file=$1 marker=$2 temp
-  [[ -f "$file" ]] || return 0
-  grep -Fq -- "$marker" "$file" || return 0
-  backup_file "$file"
-  temp=$(mktemp)
-  awk -v marker="$marker" '
-    index($0, marker) { removing = 1; next }
-    removing && /-- END roubilibo[.]whatsapp-(companion|webapp)/ { removing = 0; next }
-    !removing { print }
-  ' "$file" > "$temp"
-  install -m "$(stat -c '%a' "$file")" "$temp" "$file"
-  rm -f -- "$temp"
-}
-
-remove_legacy_call_handler() {
-  local file=$1 temp
-  [[ -f "$file" ]] || return 0
-  grep -Fq -- '-- The web app sets its initial title to "web.whatsapp.com_/"' "$file" || return 0
-  backup_file "$file"
-  temp=$(mktemp)
-  if ! awk '
-    $0 == "-- The web app sets its initial title to \"web.whatsapp.com_/\" and changes it" { removing = 1; next }
-    removing && /^[[:space:]]*end\)$/ { removing = 0; next }
-    !removing { print }
-    END { if (removing) exit 1 }
-  ' "$file" > "$temp"; then
-    rm -f -- "$temp"
-    echo "Could not safely migrate the WhatsApp call-window handler in $file" >&2
-    exit 1
-  fi
-  install -m "$(stat -c '%a' "$file")" "$temp" "$file"
-  rm -f -- "$temp"
-}
-
-remove_legacy_binding_unbinds() {
-  local file=$1 temp
-  [[ -f "$file" ]] || return 0
-  if ! grep -Fq -- '-- Hide WhatsApp instead of closing it; stop Waydroid when active; otherwise close.' "$file" \
-    && ! grep -Fq -- '-- Toggle WhatsApp in its dedicated special workspace.' "$file"; then
-    return 0
-  fi
-  backup_file "$file"
-  temp=$(mktemp)
-  awk '
-    skip_unbind != "" {
-      if ($0 == skip_unbind) {
-        skip_unbind = ""
-        next
-      }
-      skip_unbind = ""
-    }
-    $0 == "-- Hide WhatsApp instead of closing it; stop Waydroid when active; otherwise close." {
-      skip_unbind = "hl.unbind(\"SUPER + W\")"
-      next
-    }
-    $0 == "-- Toggle WhatsApp in its dedicated special workspace." {
-      skip_unbind = "hl.unbind(\"SUPER + SHIFT + W\")"
-      next
-    }
-    { print }
-  ' "$file" > "$temp"
-  install -m "$(stat -c '%a' "$file")" "$temp" "$file"
-  rm -f -- "$temp"
-}
-
-install -Dm644 "$repo_dir/manifest.json" "$plugin_dir/manifest.json"
-install -Dm644 "$repo_dir/plugin/Widget.qml" "$plugin_dir/plugin/Widget.qml"
-install -Dm644 "$repo_dir/plugin/whatsapp.svg" "$plugin_dir/plugin/whatsapp.svg"
-install -Dm644 "$repo_dir/plugin/hypr/plugin.lua" "$plugin_dir/plugin/hypr/plugin.lua"
 
 extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-companion"
 slim_extension_dir="$home_dir/.config/omarchy/chromium/extensions/whatsapp-slim"
@@ -144,10 +58,6 @@ bridge_source_dir="$repo_dir/extension/local-whatsapp-bridge"
 assert_managed_path "$extension_dir"
 assert_managed_path "$slim_extension_dir"
 assert_managed_path "$home_dir/.local/bin/whatsapp-companion-unread-host"
-assert_managed_path "$plugin_dir/plugin/hypr/toggle-whatsapp"
-assert_managed_path "$plugin_dir/plugin/hypr/close-whatsapp"
-assert_managed_path "$plugin_dir/plugin/hypr/restart-whatsapp"
-assert_managed_path "$plugin_dir/plugin/hypr/waydroid-aware-close"
 install -Dm644 "$bridge_source_dir/manifest.json" "$extension_dir/manifest.json"
 install -Dm644 "$bridge_source_dir/background.js" "$extension_dir/background.js"
 install -Dm644 "$bridge_source_dir/content.js" "$extension_dir/content.js"
@@ -175,40 +85,6 @@ sed -e "s|__HOME__|$home_dir|g" -e "s|__EXTENSION_ID__|$extension_id|g" \
   "$repo_dir/native-host/com.roubilibo.whatsapp_unread.json.in" \
   > "$host_dir/com.roubilibo.whatsapp_companion.json"
 chmod 644 "$host_dir/com.roubilibo.whatsapp_companion.json"
-
-for helper in toggle-whatsapp close-whatsapp restart-whatsapp waydroid-aware-close; do
-  install -Dm755 "$repo_dir/plugin/hypr/$helper" "$plugin_dir/plugin/hypr/$helper"
-done
-
-# Earlier versions installed these helpers in ~/.local/bin. Back them up and
-# remove them after the plugin-local copies are in place.
-for legacy_helper in toggle close restart aware-close; do
-  legacy_path="$home_dir/.local/bin/whatsapp-companion-$legacy_helper"
-  if [[ -e "$legacy_path" ]]; then
-    backup_file "$legacy_path"
-    rm -f -- "$legacy_path"
-  fi
-done
-
-bindings_file="$home_dir/.config/hypr/bindings.lua"
-if [[ -e "$bindings_file" ]]; then
-  remove_managed_block "$bindings_file" "-- BEGIN roubilibo.whatsapp-companion"
-  remove_managed_block "$bindings_file" "-- BEGIN roubilibo.whatsapp-webapp"
-  remove_legacy_binding_unbinds "$bindings_file"
-  backup_file "$bindings_file"
-  {
-    printf '\n-- BEGIN roubilibo.whatsapp-companion\n'
-    cat "$repo_dir/plugin/hypr/bindings.lua"
-    printf -- '-- END roubilibo.whatsapp-companion\n'
-  } >> "$bindings_file"
-fi
-
-windows_file="$home_dir/.config/hypr/windows.lua"
-if [[ -e "$windows_file" ]]; then
-  remove_managed_block "$windows_file" "-- BEGIN roubilibo.whatsapp-companion"
-  remove_managed_block "$windows_file" "-- BEGIN roubilibo.whatsapp-webapp"
-  remove_legacy_call_handler "$windows_file"
-fi
 
 flags_file="$home_dir/.config/chromium-flags.conf"
 mkdir -p "$(dirname -- "$flags_file")"
@@ -263,9 +139,6 @@ if ! grep -Fq "$slim_extension_dir" "$flags_file"; then
   fi
 fi
 
-echo "WhatsApp plugin $install_mode completed."
-if command -v omarchy >/dev/null 2>&1; then
-  omarchy bar move "$plugin_id" --section right || true
-fi
-echo "Then run: hyprctl reload && omarchy-shell shell rescanPlugins"
-echo "Restart WhatsApp Web once to load the extension."
+echo "WhatsApp Chromium extensions installed."
+echo "Add the Hyprland loader from the README if you want the WhatsApp keybindings and window behavior."
+echo "Restart WhatsApp Web once to load the extensions."

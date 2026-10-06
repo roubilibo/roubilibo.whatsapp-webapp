@@ -118,9 +118,17 @@ remove_load_extension() {
   temp=$(mktemp)
   awk -v path="$extension_dir" '
     index($0, "--load-extension=") == 1 {
-      sub(path ",", "", $0)
-      sub("," path, "", $0)
-      if ($0 == "--load-extension=" path) next
+      prefix = "--load-extension="
+      list = substr($0, length(prefix) + 1)
+      count = split(list, entries, ",")
+      output = ""
+      for (i = 1; i <= count; i++) {
+        if (entries[i] == path) continue
+        if (output != "") output = output ","
+        output = output entries[i]
+      }
+      if (output != "") print prefix output
+      next
     }
     { print }
   ' "$file" > "$temp"

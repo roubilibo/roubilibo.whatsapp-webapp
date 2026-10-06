@@ -20,14 +20,6 @@
       .find((match) => match);
     if (unreadFilter) return Number(unreadFilter[1].replace(/,/g, "")) || 0;
 
-    const header = document.querySelector("#side > header, #side header");
-    if (header) {
-      const values = [...header.querySelectorAll("*")]
-        .filter((node) => node.children.length === 0)
-        .map(numericValue).filter((value) => value !== null);
-      if (values.length) return Math.max(...values);
-    }
-
     const badges = document.querySelectorAll(
       '[data-testid="icon-unread-count"], span[aria-label*="unread" i]'
     );
@@ -36,19 +28,6 @@
     );
     const values = globalBadges.map(numericValue).filter((value) => value !== null);
     if (values.length) return Math.max(...values);
-
-    // Current WhatsApp versions may render the left-rail global count as a
-    // plain visible leaf number without an aria-label or test id.
-    const standaloneNumbers = [...document.querySelectorAll("*")]
-      .filter((node) => {
-        if (node.children.length > 0 || !node.getClientRects().length) return false;
-        if (node.closest(
-          '[data-testid="cell-frame-container"], [data-testid="conversation-panel-wrapper"], [data-testid="conversation-panel-body"]'
-        )) return false;
-        return /^\d{1,2}$/.test((node.textContent || "").trim());
-      })
-      .map(numericValue).filter((value) => value !== null);
-    if (standaloneNumbers.length) return Math.max(...standaloneNumbers);
 
     // During a call WhatsApp can replace the chat list with the call screen.
     // No visible unread marker in that view means "unknown", not zero; keep

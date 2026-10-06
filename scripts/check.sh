@@ -43,42 +43,91 @@ if CLOE_VERSION=v9.9.9 HOME="$test_home" "$repo_dir/scripts/install-cloe.sh" >/d
 fi
 omarchy plugin validate "$repo_dir"
 
-install -d "$test_home/.config/omarchy/plugins/other.plugin"
-printf 'keep\n' > "$test_home/.config/omarchy/plugins/other.plugin/keep"
-install -d "$test_home/.config/omarchy/plugins/roubilibo.whatsapp-companion"
-install -d "$test_home/.config/omarchy/chromium/extensions/whatsapp-companion"
-install -d "$test_home/.config/chromium/NativeMessagingHosts"
-install -d "$test_home/.config/hypr"
+install_home="$test_home/install.home"
+install -d "$install_home/.config/omarchy/plugins/roubilibo.whatsapp-companion" \
+  "$install_home/.config/hypr"
+printf 'plugin must remain untouched\n' \
+  > "$install_home/.config/omarchy/plugins/roubilibo.whatsapp-companion/sentinel"
+plugin_dir="$install_home/.config/omarchy/plugins/roubilibo.whatsapp-companion"
+find "$plugin_dir" -type f -print0 | sort -z | xargs -0 sha256sum \
+  > "$test_home/plugin.before"
+printf 'keep bindings\n' > "$install_home/.config/hypr/bindings.lua"
+printf 'keep window rules\n' > "$install_home/.config/hypr/windows.lua"
+printf '%s\n' '--load-extension=/opt/keep' > "$install_home/.config/chromium-flags.conf"
+HOME="$install_home" "$repo_dir/scripts/install.sh"
+
+extension_dir="$install_home/.config/omarchy/chromium/extensions/whatsapp-companion"
+slim_extension_dir="$install_home/.config/omarchy/chromium/extensions/whatsapp-slim"
+[[ -f "$extension_dir/manifest.json" ]] || fail "unread extension was not installed"
+[[ -f "$extension_dir/background.js" && -f "$extension_dir/content.js" ]] || \
+  fail "unread extension files are incomplete"
+[[ -f "$slim_extension_dir/manifest.json" && -f "$slim_extension_dir/whatsapp.css" ]] || \
+  fail "WhatsApp Slim extension was not installed"
+[[ -x "$install_home/.local/bin/whatsapp-companion-unread-host" ]] || \
+  fail "unread native host was not installed"
+jq -e '.name == "com.roubilibo.whatsapp_companion" and (.allowed_origins | length == 1)' \
+  "$install_home/.config/chromium/NativeMessagingHosts/com.roubilibo.whatsapp_companion.json" \
+  >/dev/null || fail "native host manifest is invalid"
+rg -F -- '/opt/keep' "$install_home/.config/chromium-flags.conf" >/dev/null || \
+  fail "installer removed an unrelated Chromium extension"
+rg -F -- "$extension_dir" "$install_home/.config/chromium-flags.conf" >/dev/null || \
+  fail "unread extension was not added to Chromium flags"
+rg -F -- "$slim_extension_dir" "$install_home/.config/chromium-flags.conf" >/dev/null || \
+  fail "WhatsApp Slim was not added to Chromium flags"
+[[ "$(cat "$install_home/.config/hypr/bindings.lua")" == 'keep bindings' ]] || \
+  fail "installer changed Hyprland bindings"
+[[ "$(cat "$install_home/.config/hypr/windows.lua")" == 'keep window rules' ]] || \
+  fail "installer changed Hyprland window rules"
+[[ -f "$install_home/.config/omarchy/plugins/roubilibo.whatsapp-companion/sentinel" ]] || \
+  fail "installer changed the Omarchy plugin directory"
+find "$plugin_dir" -type f -print0 | sort -z | xargs -0 sha256sum \
+  > "$test_home/plugin.after"
+cmp -s "$test_home/plugin.before" "$test_home/plugin.after" || \
+  fail "installer modified files in the Omarchy plugin directory"
+
+uninstall_home="$test_home/user.home"
+extension_dir="$uninstall_home/.config/omarchy/chromium/extensions/whatsapp-companion"
+uninstall_decoy_path="${extension_dir/./X}"
+install -d "$uninstall_home/.config/omarchy/plugins/other.plugin"
+printf 'keep\n' > "$uninstall_home/.config/omarchy/plugins/other.plugin/keep"
+install -d "$uninstall_home/.config/omarchy/plugins/roubilibo.whatsapp-companion"
+install -d "$uninstall_home/.config/omarchy/chromium/extensions/whatsapp-companion"
+install -d "$uninstall_home/.config/chromium/NativeMessagingHosts"
+install -d "$uninstall_home/.config/hypr"
 printf '%s\n' \
   '{"bar":{"layout":[[{"id":"other.plugin"},{"id":"roubilibo.whatsapp-companion"}]]},"plugins":[{"id":"other.plugin"},{"id":"roubilibo.whatsapp-companion"}]}' \
-  > "$test_home/.config/omarchy/shell.json"
+  > "$uninstall_home/.config/omarchy/shell.json"
 printf '%s\n' \
   'other binding' \
   'o.bind("SUPER + SHIFT + W", "Toggle WhatsApp", "~/.local/bin/toggle-whatsapp")' \
   '-- BEGIN roubilibo.whatsapp-companion' \
   'whatsapp binding' \
   '-- END roubilibo.whatsapp-companion' \
-  > "$test_home/.config/hypr/bindings.lua"
+  > "$uninstall_home/.config/hypr/bindings.lua"
 printf '%s\n' \
   'other window rule' \
   '-- BEGIN roubilibo.whatsapp-companion' \
   'whatsapp window rule' \
   '-- END roubilibo.whatsapp-companion' \
-  > "$test_home/.config/hypr/windows.lua"
+  > "$uninstall_home/.config/hypr/windows.lua"
 printf '%s\n' \
-  "--load-extension=/opt/other-extension,$test_home/.config/omarchy/chromium/extensions/whatsapp-companion" \
-  > "$test_home/.config/chromium-flags.conf"
+  "--load-extension=$uninstall_decoy_path,/opt/other-extension,$extension_dir" \
+  > "$uninstall_home/.config/chromium-flags.conf"
 
-HOME="$test_home" "$repo_dir/scripts/uninstall.sh" --yes
+HOME="$uninstall_home" "$repo_dir/scripts/uninstall.sh" --yes
 
-[[ -f "$test_home/.config/omarchy/plugins/other.plugin/keep" ]] || fail "unrelated plugin was removed"
-[[ ! -e "$test_home/.config/omarchy/plugins/roubilibo.whatsapp-companion" ]] || fail "plugin directory remains"
+[[ -f "$uninstall_home/.config/omarchy/plugins/other.plugin/keep" ]] || fail "unrelated plugin was removed"
+[[ ! -e "$uninstall_home/.config/omarchy/plugins/roubilibo.whatsapp-companion" ]] || fail "plugin directory remains"
 jq -e '.bar.layout[0][0].id == "other.plugin" and .plugins[0].id == "other.plugin"' \
-  "$test_home/.config/omarchy/shell.json" >/dev/null || fail "shell entries were not isolated"
-rg -F -- '~/.local/bin/toggle-whatsapp' "$test_home/.config/hypr/bindings.lua" >/dev/null || \
+  "$uninstall_home/.config/omarchy/shell.json" >/dev/null || fail "shell entries were not isolated"
+rg -F -- '~/.local/bin/toggle-whatsapp' "$uninstall_home/.config/hypr/bindings.lua" >/dev/null || \
   fail "unmarked legacy binding was removed"
-rg -F -- '/opt/other-extension' "$test_home/.config/chromium-flags.conf" >/dev/null || fail "unrelated extension was removed"
-! rg -F -- 'whatsapp-companion' "$test_home/.config/chromium-flags.conf" >/dev/null || fail "WhatsApp extension flag remains"
+rg -F -- "$uninstall_decoy_path" "$uninstall_home/.config/chromium-flags.conf" >/dev/null || \
+  fail "unrelated dotted-path extension was removed"
+rg -F -- '/opt/other-extension' "$uninstall_home/.config/chromium-flags.conf" >/dev/null || \
+  fail "unrelated extension was removed"
+! rg -F -- "$extension_dir" "$uninstall_home/.config/chromium-flags.conf" >/dev/null || \
+  fail "WhatsApp extension flag remains"
 
 if HOME=/ "$repo_dir/scripts/uninstall.sh" --yes >/dev/null 2>&1; then
   fail "unsafe HOME was accepted"
