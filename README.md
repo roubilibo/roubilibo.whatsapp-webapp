@@ -79,8 +79,11 @@ SHA-256 digests for the extension and each supported Linux host architecture.
 It rejects unpinned `CLOE_VERSION` overrides before downloading anything.
 
 The installer backs up edited user files before changing them. It installs the
-bar plugin, both Chromium extensions, the native host, and scripts; it adds
-marked Hyprland snippets when they are missing and places the widget in the
+bar plugin, both Chromium extensions, the native host, and the Hyprland helpers
+inside the plugin directory. It replaces the old inline Hyprland snippets with
+one managed loader in `bindings.lua`; the window rules and bindings then live
+beside the widget. Older `~/.local/bin/whatsapp-companion-*` helpers are backed
+up and removed during the update. The installer also places the widget in the
 right bar section.
 
 Then apply the Hyprland and shell configuration:
@@ -132,12 +135,16 @@ Right-clicking the bar icon opens a small menu with:
 
 ## Files
 
-`plugin/` is the Omarchy bar plugin. `extension/local-whatsapp-bridge/` contains
-the unread bridge, and `extension/whatsapp-slim/` contains the separate
-compact-layout extension; both are loaded into the Chromium webapp through
-`--load-extension`.
-`native-host/` contains the Native Messaging helper and manifest template.
-`hypr/` contains the scripts and configuration snippets.
+`plugin/` contains the Omarchy bar widget and its `hypr/` integration: one Lua
+module owns the WhatsApp bindings and window behavior, alongside the helper
+commands. The installer
+copies that directory into the Omarchy plugin so the bar and Hyprland code
+share one home. `extension/local-whatsapp-bridge/` contains the unread bridge, and
+`extension/whatsapp-slim/` contains the separate compact-layout extension;
+both are loaded into the Chromium webapp through `--load-extension`.
+`native-host/` contains the Native Messaging helper and manifest template; the
+host executable remains in `~/.local/bin/` because Chromium's Native Messaging
+manifest points to an executable path.
 
 The WhatsApp unread extension only sends a numeric unread value to its local
 native host; it does not send chat names, message text, contacts, or account

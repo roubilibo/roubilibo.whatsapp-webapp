@@ -14,7 +14,11 @@ for command in bash jq omarchy python3 rg; do
   command -v "$command" >/dev/null 2>&1 || fail "$command is required"
 done
 
-bash -n "$repo_dir"/scripts/*.sh "$repo_dir"/hypr/*
+bash -n "$repo_dir"/scripts/*.sh \
+  "$repo_dir"/plugin/hypr/toggle-whatsapp \
+  "$repo_dir"/plugin/hypr/close-whatsapp \
+  "$repo_dir"/plugin/hypr/restart-whatsapp \
+  "$repo_dir"/plugin/hypr/waydroid-aware-close
 jq empty "$repo_dir/manifest.json" \
   "$repo_dir/extension/local-whatsapp-bridge/manifest.json" \
   "$repo_dir/extension/whatsapp-slim/manifest.json" \

@@ -10,12 +10,11 @@ BarWidget {
 
   readonly property string unreadState:
     Quickshell.env("HOME") + "/.local/state/omarchy/whatsapp-companion.json"
-  readonly property string toggleScript:
-    Quickshell.env("HOME") + "/.local/bin/whatsapp-companion-toggle"
-  readonly property string closeScript:
-    Quickshell.env("HOME") + "/.local/bin/whatsapp-companion-close"
-  readonly property string restartScript:
-    Quickshell.env("HOME") + "/.local/bin/whatsapp-companion-restart"
+  readonly property string hyprDir:
+    Quickshell.env("HOME") + "/.config/omarchy/plugins/roubilibo.whatsapp-companion/hypr"
+  readonly property string toggleScript: root.hyprDir + "/toggle-whatsapp"
+  readonly property string closeScript: root.hyprDir + "/close-whatsapp"
+  readonly property string restartScript: root.hyprDir + "/restart-whatsapp"
   property int unreadCount: 0
   property bool whatsappRunning: false
   property bool popupOpen: false

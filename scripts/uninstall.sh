@@ -51,7 +51,29 @@ fi
 
 backup_file() {
   local file=$1
-  [[ -e "$file" ]] && cp -a -- "$file" "$file.bak.$stamp"
+  if [[ -e "$file" && ! -e "$file.bak.$stamp" ]]; then
+    cp -a -- "$file" "$file.bak.$stamp"
+  fi
+}
+
+remove_legacy_call_handler() {
+  local file=$1 temp
+  [[ -f "$file" ]] || return 0
+  grep -Fq -- '-- The web app sets its initial title to "web.whatsapp.com_/"' "$file" || return 0
+  backup_file "$file"
+  temp=$(mktemp)
+  if ! awk '
+    $0 == "-- The web app sets its initial title to \"web.whatsapp.com_/\" and changes it" { removing = 1; next }
+    removing && /^[[:space:]]*end\)$/ { removing = 0; next }
+    !removing { print }
+    END { if (removing) exit 1 }
+  ' "$file" > "$temp"; then
+    rm -f -- "$temp"
+    echo "Could not safely remove the WhatsApp call-window handler in $file" >&2
+    exit 1
+  fi
+  install -m "$(stat -c '%a' "$file")" "$temp" "$file"
+  rm -f -- "$temp"
 }
 
 remove_block() {
@@ -194,6 +216,7 @@ remove_block "$home_dir/.config/hypr/bindings.lua" \
   "-- BEGIN roubilibo.whatsapp-webapp" "-- END roubilibo.whatsapp-webapp"
 remove_block "$home_dir/.config/hypr/windows.lua" \
   "-- BEGIN roubilibo.whatsapp-webapp" "-- END roubilibo.whatsapp-webapp"
+remove_legacy_call_handler "$home_dir/.config/hypr/windows.lua"
 remove_whatsapp_window_rule "$home_dir/.config/hypr/windows.lua"
 remove_load_extension "$flags_file" "$extension_dir"
 remove_load_extension "$flags_file" "$slim_extension_dir"
