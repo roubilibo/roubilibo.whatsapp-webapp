@@ -132,8 +132,8 @@ extension entries remain intact.
 - restores it when invoked while WhatsApp is in the special workspace;
 - retains the existing Waydroid-stop and normal-close behavior for other windows.
 
-WhatsApp and its call windows open tiled. Their size follows the active
-workspace layout.
+WhatsApp Web follows the active workspace layout. Its call pop-out floats at
+406 × 684 pixels, matching the current call window size.
 
 Right-clicking the bar icon opens a small menu with:
 

@@ -13,15 +13,8 @@ o.bind("SUPER + W", "Close window / stop Waydroid session",
 hl.unbind("SUPER + SHIFT + W")
 o.bind("SUPER + SHIFT + W", "Toggle WhatsApp", hypr_dir .. "/toggle-whatsapp")
 
--- Keep WhatsApp tiled and let the active workspace layout choose its size.
-o.window("^chrome-web[.]whatsapp[.]com__-Default$", {
-  tile = true,
-  tag = "-default-opacity",
-  opacity = "1 1",
-})
-
 -- WhatsApp changes its initial webapp title to "WhatsApp call" after opening
--- a call window. Keep call windows tiled with the same sizing behavior.
+-- a call window. Float the pop-out at the size of the current call window.
 hl.on("window.title", function(window)
   if not window
     or window.class ~= "chrome-web.whatsapp.com__-Default"
@@ -30,5 +23,11 @@ hl.on("window.title", function(window)
     return
   end
 
-  hl.dispatch(hl.dsp.window.tag({ window = window, tag = "+whatsapp-call" }))
+  for _, action in ipairs({
+    hl.dsp.window.tag({ window = window, tag = "+whatsapp-call" }),
+    hl.dsp.window.float({ window = window, action = "on" }),
+    hl.dsp.window.resize({ window = window, x = 406, y = 684, relative = false }),
+  }) do
+    hl.dispatch(action)
+  end
 end)
